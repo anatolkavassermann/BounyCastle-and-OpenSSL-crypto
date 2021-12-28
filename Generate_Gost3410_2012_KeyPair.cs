@@ -1,3 +1,4 @@
+//.net 6.0
 //.Net Assemblies
 using System;
 using System.Text;
@@ -50,10 +51,10 @@ static void Generate_Gost3410_2012_KeyPair(string _PrKeyFileName, string _PbKeyF
 				break;
 			}
 		default:
-            {
+			{
 				Console.WriteLine("Key pair not generated!");
 				break;
-            }
+			}
 	}
 }
 
