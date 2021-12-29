@@ -34,10 +34,10 @@ using Net.Asn1.Reader;
 string Header_Key_FileName = "";
 
 
-Sample_15_ExportCerts_FromContainer(Header_Key_FileName);
+Sample_15_ExportCerts_FromCryptoProContainer(Header_Key_FileName);
 
 
-static void Sample_15_ExportCerts_FromContainer (string _Header_Key_FileName)
+static void Sample_15_ExportCerts_FromCryptoProContainer (string _Header_Key_FileName)
 {
 	var b = File.ReadAllBytes(_Header_Key_FileName);
 	var m = new MemoryStream(b);
