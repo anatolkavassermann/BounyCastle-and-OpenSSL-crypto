@@ -39,6 +39,7 @@ var SelfSignedCertFileName = "cert.crt";
 var PFXFileName = "pfx.pfx";
 var PFXPass = "12345qwerty";
 string CAdES_BES_SigFileName = "toBeSignedCAdES_BES.sig";
+string IssuedCertFileName = "issued_cert.crt";
 
 Sample_1_Generate_Gost3410_2012_KeyPair(PrKeyFileName, PbKeyFileName, ToBeSigned);
 Sample_2_Read_Gost3410_2012_KeyPair_FromFile(PrKeyFileName, PbKeyFileName, ToBeSigned);
@@ -48,7 +49,7 @@ Sample_5_GenerateCertRequest(PrKeyFileName, PbKeyFileName, CertRequestFileName);
 Sample_6_GenerateSelfSignedCertificate(PrKeyFileName, PbKeyFileName, SelfSignedCertFileName);
 Sample_7_ExportPfx(PrKeyFileName, PFXFileName, SelfSignedCertFileName, PFXPass);
 Sample_8_ImportPfx(PFXFileName, PFXPass);
-//Sample_9_SignCertRequest
+Sample_9_SignCertRequest(PFXFileName, PFXPass, CertRequestFileName, IssuedCertFileName);
 Sample_10_Create_Attached_CAdES_BES(PFXFileName, PFXPass, CAdES_BES_SigFileName, ToBeSignedFileName);
 Sample_11_Verify_Attached_CAdES_BES(CAdES_BES_SigFileName);
 //Sample_12_BuildCertChain
@@ -342,9 +343,84 @@ static void Sample_8_ImportPfx(string _PFXFileName, string _PFXPass)
     }
 }
 
-static void Sample_9_SignCertRequest ()
+static void Sample_9_SignCertRequest (string _PFXFileName, string _PFXPass, string _CertRequestFileName, string _IssuedCertFileName)
 {
-	//TODO
+	Console.WriteLine("\nSample_9_SignCertRequest");
+	var secureRandom = new SecureRandom();
+	Pkcs10CertificationRequest reqToBeSigned = (Pkcs10CertificationRequest)ReadPemObject(_CertRequestFileName);
+	bool result = reqToBeSigned.Verify();
+	Console.WriteLine($"PKCS#10 verification status: {result}");
+	switch (result)
+    {
+		case true:
+            {
+				var pfxBytes = File.ReadAllBytes(_PFXFileName);
+				var builder = new Pkcs12StoreBuilder();
+				builder.SetUseDerEncoding(true);
+				var store = builder.Build();
+				var m = new MemoryStream(pfxBytes);
+				store.Load(m, _PFXPass.ToCharArray());
+				m.Close();
+				AsymmetricKeyEntry prkBag = store.GetKey("prk");
+				X509CertificateEntry certBag = store.GetCertificate("cert");
+				Org.BouncyCastle.Math.BigInteger serial = new Org.BouncyCastle.Math.BigInteger(160, secureRandom);
+				var certGen = new X509V3CertificateGenerator();
+				certGen.SetSerialNumber(serial);
+				certGen.SetIssuerDN(certBag.Certificate.IssuerDN);
+				certGen.SetNotBefore(DateTime.UtcNow);
+				certGen.SetNotAfter(DateTime.UtcNow.AddYears(1));
+				certGen.SetPublicKey(reqToBeSigned.GetPublicKey());
+				certGen.SetSubjectDN(reqToBeSigned.GetCertificationRequestInfo().Subject);
+				var nonCritycal = reqToBeSigned.GetRequestedExtensions().GetNonCriticalExtensionOids();
+				var Critycal = reqToBeSigned.GetRequestedExtensions().GetCriticalExtensionOids();
+				var reqExt = reqToBeSigned.GetRequestedExtensions();
+				var nc = nonCritycal.GetEnumerator();
+				var cr = Critycal.GetEnumerator();
+				while (nc.MoveNext())
+                {
+					var ext = reqExt.GetExtension((DerObjectIdentifier)nc.Current);
+					certGen.AddExtension((DerObjectIdentifier)nc.Current, false, ext.GetParsedValue());
+				}
+				while (cr.MoveNext())
+				{
+					var ext = reqExt.GetExtension((DerObjectIdentifier)cr.Current);
+					certGen.AddExtension((DerObjectIdentifier)cr.Current, true, ext.GetParsedValue());
+				}
+				ISignatureFactory signatureFactory = new Asn1SignatureFactory(RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_256.Id, (AsymmetricKeyParameter)prkBag.Key);
+				var x509 = certGen.Generate(signatureFactory);
+				bool flag;
+				try
+				{
+					x509.Verify(certBag.Certificate.GetPublicKey());
+					flag = true;
+				}
+				catch
+				{
+					flag = false;
+				}
+				switch (flag)
+				{
+					case true:
+						{
+							WritePemObject(x509, _IssuedCertFileName);
+							Console.WriteLine("Certificate issued");
+							break;
+						}
+					default:
+						{
+							Console.WriteLine("Certificate NOT issued");
+							break;
+						}
+				}
+
+				break;
+            }
+		default:
+            {
+				Console.WriteLine("Certificate NOT issued!");
+				break;
+            }
+    }
 }
 
 static void Sample_10_Create_Attached_CAdES_BES(string _PFXFileName, string _PFXPass, string _CAdES_BES_SigFileName, string _ToBeSignedFileName)
