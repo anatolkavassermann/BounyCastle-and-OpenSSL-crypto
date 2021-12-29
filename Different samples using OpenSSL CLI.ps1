@@ -78,6 +78,6 @@ function Sample_14_CreateOCSPResponse {
 }
 
 Sample_1_Generate_Gost3410_2012_KeyPair
-#Sample_2 is not necessary / второй пример с чтением открытого/закрытого ключа, на мой взгляд, не нужен. Если очень нужно, можно воспользоваться cat prk.pem
+#Sample_2_Read_Gost3410_2012_KeyPair_FromFile is not necessary / второй пример с чтением открытого/закрытого ключа, на мой взгляд, не нужен. Если очень нужно, можно воспользоваться cat prk.pem
 Sample_3_Sign_And_Export_RawSignature_ToFile
 Sample_4_Verify_RawSignature_ToFile
