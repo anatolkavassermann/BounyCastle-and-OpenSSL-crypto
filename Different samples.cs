@@ -33,7 +33,7 @@ var PbKeyFileName = "pbk.pem";
 var ToBeSigned = "Hello, world!";
 var ToBeSignedFileName = "toBeSigned.txt";
 File.WriteAllBytes(ToBeSignedFileName, Encoding.ASCII.GetBytes(ToBeSigned));
-var RawSigFileName = "toBeSignedRaw.txt";
+var RawSigFileName = "toBeSignedRaw.sig";
 var CertRequestFileName = "req.req";
 var SelfSignedCertFileName = "cert.crt";
 var PFXFileName = "pfx.pfx";
