@@ -49,6 +49,7 @@ static void Sample_15_ExportCerts_FromContainer ()
 		}
 		catch
         {
+			//TODO
 		}
     }
 }
