@@ -1,11 +1,7 @@
 function Sample_1_Generate_Gost3410_2012_KeyPair {
     param (
-        [parameter(Mandatory=$false)]
-        [System.String]
-        $PrKFilePath = "prk.pem",
-        [parameter(Mandatory=$false)]
-        [System.String]
-        $PbKFilePath = "pbk.pem"
+        [parameter(Mandatory=$false)] [System.String] $PrKFilePath = "prk.pem",
+        [parameter(Mandatory=$false)] [System.String] $PbKFilePath = "pbk.pem"
     )
 
     openssl genpkey -outform PEM -algorithm gost2012_256 -pkeyopt paramset:TCA -out $PrKFilePath
@@ -14,15 +10,9 @@ function Sample_1_Generate_Gost3410_2012_KeyPair {
 
 function Sample_3_Sign_And_Export_RawSignature_ToFile {
     param (
-        [parameter(Mandatory=$false)]
-        [System.String]
-        $PrKFilePath = "prk.pem",
-        [parameter(Mandatory=$false)]
-        [System.String]
-        $ToBeSignedFilePath = "to_be_signed.txt",
-        [parameter(Mandatory=$false)]
-        [System.String]
-        $RAWSigFilePath = "to_be_signed.txt.sig"
+        [parameter(Mandatory=$false)] [System.String] $PrKFilePath = "prk.pem",
+        [parameter(Mandatory=$false)] [System.String] $ToBeSignedFilePath = "to_be_signed.txt",
+        [parameter(Mandatory=$false)] [System.String] $RAWSigFilePath = "to_be_signed.txt.sig"
     )
 
     openssl dgst -sign $PrKFilePath -md_gost12_256 -binary -out $RAWSigFilePath $ToBeSignedFilePath
@@ -30,15 +20,9 @@ function Sample_3_Sign_And_Export_RawSignature_ToFile {
 
 function Sample_4_Verify_RawSignature_ToFile {
     param (
-        [parameter(Mandatory=$false)]
-        [System.String]
-        $PbKFilePath = "pbk.pem",
-        [parameter(Mandatory=$false)]
-        [System.String]
-        $ToBeSignedFilePath = "to_be_signed.txt",
-        [parameter(Mandatory=$false)]
-        [System.String]
-        $RAWSigFilePath = "to_be_signed.txt.sig"
+        [parameter(Mandatory=$false)] [System.String] $PbKFilePath = "pbk.pem",
+        [parameter(Mandatory=$false)] [System.String] $ToBeSignedFilePath = "to_be_signed.txt",
+        [parameter(Mandatory=$false)] [System.String] $RAWSigFilePath = "to_be_signed.txt.sig"
     )
 
     $ans = openssl dgst -verify $PbKFilePath -md_gost12_256 -signature $RAWSigFilePath $ToBeSignedFilePath
