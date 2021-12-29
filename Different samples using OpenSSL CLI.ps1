@@ -9,8 +9,9 @@ function Sample_1_Generate_Gost3410_2012_KeyPair {
     )
 
     openssl genpkey -outform PEM -algorithm gost2012_256 -pkeyopt paramset:TCA -out $PrKFilePath
-    openssl req -new -key $PrKFilePath -subj "/" -noout -pubkey -outform PEM -out $PbKFilePath #не знаю, как иначе получить закрытый ключ. Используя команду "openssl genpkey" можно получить открытый ключ, но он будет представлен в виде координат / don't know how else to get the private key. you can get the public key using the command "openssl genpkey" , but it will be represented as a coordinates
+    openssl req -new -key $PrKFilePath -subj "/" -noout -pubkey -outform PEM -out $PbKFilePath
 }
+
 function Sample_3_Sign_And_Export_RawSignature_ToFile {
     param (
         [parameter(Mandatory=$false)]
@@ -50,6 +51,46 @@ function Sample_4_Verify_RawSignature_ToFile {
             Write-Host -ForegroundColor Red -Object "Signature NOT Verified"
         }
     }
+}
+
+function Sample_5_GenerateCertRequest {
+    #TODO
+}
+
+function Sample_6_GenerateSelfSignedCertificate {
+    #TODO
+}
+
+function Sample_7_ExportPfx {
+    #TODO
+}
+
+function Sample_8_ImportPfx {
+    #TODO
+}
+
+function Sample_9_SignCertRequest {
+    #TODO
+}
+
+function Sample_10_Create_Attached_CAdES_BES {
+    #TODO
+}
+
+function Sample_11_Verify_Attached_CAdES_BES {
+    #TODO
+}
+
+function Sample_12_BuildCertChain {
+    #TODO
+}
+
+function Sample_13_SignCRL {
+    #TODO
+}
+
+function Sample_14_CreateOCSPResponse {
+    #TODO
 }
 
 Sample_1_Generate_Gost3410_2012_KeyPair
