@@ -30,9 +30,16 @@ using Org.BouncyCastle.Asn1.Rosstandart;
 //ASN1 Reader
 using Net.Asn1.Reader;
 
-static void Sample_15_ExportCerts_FromContainer ()
+
+string Header_Key_FileName = "";
+
+
+Sample_15_ExportCerts_FromContainer(Header_Key_FileName);
+
+
+static void Sample_15_ExportCerts_FromContainer (string _Header_Key_FileName)
 {
-	var b = File.ReadAllBytes(@"E:\OLD\OLDOLDO\OSSO4GB\Very\Very OLD\OOLLDD\OLD\Old_Old\23.000\header.key");
+	var b = File.ReadAllBytes(_Header_Key_FileName);
 	var m = new MemoryStream(b);
 	var berReader = new BerReader(m);
 	var header_key = berReader.ReadToEnd(true);
