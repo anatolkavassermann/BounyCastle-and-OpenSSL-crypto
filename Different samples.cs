@@ -48,8 +48,11 @@ Sample_5_GenerateCertRequest(PrKeyFileName, PbKeyFileName, CertRequestFileName);
 Sample_6_GenerateSelfSignedCertificate(PrKeyFileName, PbKeyFileName, SelfSignedCertFileName);
 Sample_7_ExportPfx(PrKeyFileName, PFXFileName, SelfSignedCertFileName, PFXPass);
 Sample_8_ImportPfx(PFXFileName, PFXPass);
+//Sample_9_SignCertRequest
 Sample_10_Create_CAdES_BES(PFXFileName, PFXPass, CAdES_BES_SigFileName, ToBeSignedFileName);
 Sample_11_Verify_CAdES_BES(CAdES_BES_SigFileName);
+//Sample_12_BuildCertChain
+//Sample_13_SignCRL
 
 static void Sample_1_Generate_Gost3410_2012_KeyPair(string _PrKeyFileName, string _PbKeyFileName, string _ToBeSigned)
 {
