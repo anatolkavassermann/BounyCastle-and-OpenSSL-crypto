@@ -54,6 +54,7 @@ Sample_10_Create_Attached_CAdES_BES(PFXFileName, PFXPass, CAdES_BES_SigFileName,
 Sample_11_Verify_Attached_CAdES_BES(CAdES_BES_SigFileName);
 //Sample_12_BuildCertChain
 //Sample_13_SignCRL
+//Sample_14_CreateOCSPResponse
 
 static void Sample_1_Generate_Gost3410_2012_KeyPair(string _PrKeyFileName, string _PbKeyFileName, string _ToBeSigned)
 {
@@ -530,6 +531,11 @@ static void Sample_12_BuildCertChain()
 }
 
 static void Sample_13_SignCRL()
+{
+	//TODO
+}
+
+static void Sample_14_CreateOCSPResponse()
 {
 	//TODO
 }
