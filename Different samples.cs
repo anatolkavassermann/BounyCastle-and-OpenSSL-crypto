@@ -49,8 +49,8 @@ Sample_6_GenerateSelfSignedCertificate(PrKeyFileName, PbKeyFileName, SelfSignedC
 Sample_7_ExportPfx(PrKeyFileName, PFXFileName, SelfSignedCertFileName, PFXPass);
 Sample_8_ImportPfx(PFXFileName, PFXPass);
 //Sample_9_SignCertRequest
-Sample_10_Create_CAdES_BES(PFXFileName, PFXPass, CAdES_BES_SigFileName, ToBeSignedFileName);
-Sample_11_Verify_CAdES_BES(CAdES_BES_SigFileName);
+Sample_10_Create_Attached_CAdES_BES(PFXFileName, PFXPass, CAdES_BES_SigFileName, ToBeSignedFileName);
+Sample_11_Verify_Attached_CAdES_BES(CAdES_BES_SigFileName);
 //Sample_12_BuildCertChain
 //Sample_13_SignCRL
 
@@ -347,7 +347,7 @@ static void Sample_9_SignCertRequest ()
 	//TODO
 }
 
-static void Sample_10_Create_CAdES_BES(string _PFXFileName, string _PFXPass, string _CAdES_BES_SigFileName, string _ToBeSignedFileName)
+static void Sample_10_Create_Attached_CAdES_BES(string _PFXFileName, string _PFXPass, string _CAdES_BES_SigFileName, string _ToBeSignedFileName)
 {
 	Console.WriteLine("\nSample_10_Create_CAdES_BES");
 	var pfxBytes = File.ReadAllBytes(_PFXFileName);
@@ -407,7 +407,7 @@ static void Sample_10_Create_CAdES_BES(string _PFXFileName, string _PFXPass, str
 	Console.WriteLine("CAdES-BES generated");
 }
 
-static void Sample_11_Verify_CAdES_BES(string _CAdES_BES_SigFileName)
+static void Sample_11_Verify_Attached_CAdES_BES(string _CAdES_BES_SigFileName)
 {
 	Console.WriteLine("\nSample_11_Verify_CAdES_BES");
 	var signatureBytes = File.ReadAllBytes(_CAdES_BES_SigFileName);
