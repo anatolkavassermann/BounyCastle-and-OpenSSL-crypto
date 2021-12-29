@@ -43,7 +43,7 @@ string IssuedCertFileName = "issued_cert.crt";
 
 Sample_1_Generate_Gost3410_2012_KeyPair(PrKeyFileName, PbKeyFileName, ToBeSigned);
 Sample_2_Read_Gost3410_2012_KeyPair_FromFile(PrKeyFileName, PbKeyFileName, ToBeSigned);
-Sample_3_Export_RawSignature_ToFile(PrKeyFileName, PbKeyFileName, RawSigFileName, ToBeSignedFileName);
+Sample_3_Sign_And_Export_RawSignature_ToFile (PrKeyFileName, PbKeyFileName, RawSigFileName, ToBeSignedFileName);
 Sample_4_ImportandVerify_RawSignature(PbKeyFileName, RawSigFileName, ToBeSignedFileName);
 Sample_5_GenerateCertRequest(PrKeyFileName, PbKeyFileName, CertRequestFileName);
 Sample_6_GenerateSelfSignedCertificate(PrKeyFileName, PbKeyFileName, SelfSignedCertFileName);
@@ -130,7 +130,7 @@ static void Sample_2_Read_Gost3410_2012_KeyPair_FromFile(string _PrKeyFileName, 
     }
 }
 
-static void Sample_3_Export_RawSignature_ToFile(string _PrKeyFileName, string _PbKeyFileName, string _RawSigFileName, string _ToBeSignedFileName)
+static void Sample_3_Sign_And_Export_RawSignature_ToFile (string _PrKeyFileName, string _PbKeyFileName, string _RawSigFileName, string _ToBeSignedFileName)
 {
 	Console.WriteLine("\nSample_3_Export_RawSignature_ToFile");
 	var secureRandom = new SecureRandom();
