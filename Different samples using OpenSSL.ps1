@@ -9,7 +9,7 @@ function Sample_1_Generate_Gost3410_2012_KeyPair {
     )
 
     openssl genpkey -outform PEM -algorithm gost2012_256 -pkeyopt paramset:TCA -out $PrKFilePath
-    openssl req -new -key $PrKFilePath -subj "/" -noout -pubkey -outform PEM -out $PbKFilePath
+    openssl req -new -key $PrKFilePath -subj "/" -noout -pubkey -outform PEM -out $PbKFilePath #
 }
 function Sample_3_Sign_And_Export_RawSignature_ToFile {
     param (
@@ -53,6 +53,6 @@ function Sample_4_Verify_RawSignature_ToFile {
 }
 
 Sample_1_Generate_Gost3410_2012_KeyPair
-#Sample_2 is not necessary
+#Sample_2 is not necessary / второй пример с чтением открытого/закрытого ключа, на мой взгляд, не нужен. Если очень нужно, можно воспользоваться cat prk.pem
 Sample_3_Sign_And_Export_RawSignature_ToFile
 Sample_4_Verify_RawSignature_ToFile
