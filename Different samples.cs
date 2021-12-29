@@ -355,6 +355,11 @@ static void Sample_12_BuildCertChain()
 	//TODO
 }
 
+static void Sample_13_SignCRL()
+{
+	//TODO
+}
+
 static void WritePemObject(Object _object, String _fileName)
 {
 	TextWriter TextWriter = File.CreateText($".\\{_fileName}");
