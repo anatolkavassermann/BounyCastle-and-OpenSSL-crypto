@@ -52,3 +52,7 @@ function Sample_4_Verify_RawSignature_ToFile {
     }
 }
 
+Sample_1_Generate_Gost3410_2012_KeyPair
+#Sample_2 is not necessary
+Sample_3_Sign_And_Export_RawSignature_ToFile
+Sample_4_Verify_RawSignature_ToFile
