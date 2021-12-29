@@ -38,6 +38,7 @@ var CertRequestFileName = "req.req";
 var SelfSignedCertFileName = "cert.crt";
 var PFXFileName = "pfx.pfx";
 var PFXPass = "12345qwerty";
+string CAdES_BES_SigFileName = "toBeSignedCAdES_BES.sig";
 
 Sample_1_Generate_Gost3410_2012_KeyPair(PrKeyFileName, PbKeyFileName, ToBeSigned);
 Sample_2_Read_Gost3410_2012_KeyPair_FromFile(PrKeyFileName, PbKeyFileName, ToBeSigned);
@@ -47,6 +48,8 @@ Sample_5_GenerateCertRequest(PrKeyFileName, PbKeyFileName, CertRequestFileName);
 Sample_6_GenerateSelfSignedCertificate(PrKeyFileName, PbKeyFileName, SelfSignedCertFileName);
 Sample_7_ExportPfx(PrKeyFileName, PFXFileName, SelfSignedCertFileName, PFXPass);
 Sample_8_ImportPfx(PFXFileName, PFXPass);
+Sample_10_Create_CAdES_BES(PFXFileName, PFXPass, CAdES_BES_SigFileName, ToBeSignedFileName);
+Sample_11_Verify_CAdES_BES(CAdES_BES_SigFileName);
 
 static void Sample_1_Generate_Gost3410_2012_KeyPair(string _PrKeyFileName, string _PbKeyFileName, string _ToBeSigned)
 {
@@ -321,13 +324,14 @@ static void Sample_8_ImportPfx(string _PFXFileName, string _PFXPass)
                 {
 					Console.WriteLine("PFX imported!");
 					break;
-                }
+				}
             default:
                 {
 					Console.WriteLine("PFX NOT imported!");
 					break;
                 }
         }
+		
 	}
 	catch
     {
@@ -340,14 +344,105 @@ static void Sample_9_SignCertRequest ()
 	//TODO
 }
 
-static void Sample_10_Create_CAdES_BES()
+static void Sample_10_Create_CAdES_BES(string _PFXFileName, string _PFXPass, string _CAdES_BES_SigFileName, string _ToBeSignedFileName)
 {
-	//TODO
+	Console.WriteLine("\nSample_10_Create_CAdES_BES");
+	var pfxBytes = File.ReadAllBytes(_PFXFileName);
+	var builder = new Pkcs12StoreBuilder();
+	builder.SetUseDerEncoding(true);
+	var store = builder.Build();
+	var m = new MemoryStream(pfxBytes);
+	store.Load(m, _PFXPass.ToCharArray());
+	m.Close();
+	AsymmetricKeyEntry prkBag = store.GetKey("prk");
+	X509CertificateEntry certBag = store.GetCertificate("cert");
+	var fileBytes = File.ReadAllBytes(_ToBeSignedFileName);
+	List<Org.BouncyCastle.X509.X509Certificate> certList = new List<Org.BouncyCastle.X509.X509Certificate>();
+	certList.Add(certBag.Certificate);
+	var storeParams = new X509CollectionStoreParameters(certList);
+	var certStore = X509StoreFactory.Create("Certificate/Collection", storeParams);
+	var publicKey = (ECPublicKeyParameters)certBag.Certificate.GetPublicKey();
+	var publicKeyParams = (ECGost3410Parameters)publicKey.Parameters;
+	var certHash = DigestUtilities.CalculateDigest(publicKeyParams.DigestParamSet.Id, certBag.Certificate.GetEncoded());
+	var essV2Cert = new EssCertIDv2(
+		new AlgorithmIdentifier(publicKeyParams.DigestParamSet.Id),
+		certHash,
+		new IssuerSerial(
+			new GeneralNames(
+				new GeneralName(certBag.Certificate.IssuerDN)
+			),
+			new DerInteger(certBag.Certificate.SerialNumber)
+		)
+	);
+	var signingCertV2 = new SigningCertificateV2(new EssCertIDv2[] { essV2Cert });
+	var fileHash = DigestUtilities.CalculateDigest(publicKeyParams.DigestParamSet.Id, fileBytes);
+	var essattb = new Org.BouncyCastle.Asn1.Cms.Attribute(PkcsObjectIdentifiers.IdAASigningCertificateV2, new DerSet(signingCertV2));
+	var timeattb = new Org.BouncyCastle.Asn1.Cms.Attribute(PkcsObjectIdentifiers.Pkcs9AtSigningTime, new DerSet(new DerUtcTime(DateTime.UtcNow)));
+	var ctattb = new Org.BouncyCastle.Asn1.Cms.Attribute(CmsAttributes.ContentType, new DerSet(new DerObjectIdentifier("1.2.840.113549.1.7.1")));
+	var mdattb = new Org.BouncyCastle.Asn1.Cms.Attribute(CmsAttributes.MessageDigest, new DerSet(new DerOctetString(fileHash)));
+	var daattb = new Org.BouncyCastle.Asn1.Cms.Attribute(new DerObjectIdentifier(PkcsObjectIdentifiers.DigestAlgorithm), new DerSet(new DerObjectIdentifier(publicKeyParams.DigestParamSet.Id)));
+
+	var signedAttrs = new Hashtable();
+	signedAttrs.Add((DerObjectIdentifier)essattb.AttrType, essattb);
+	signedAttrs.Add((DerObjectIdentifier)timeattb.AttrType, timeattb);
+	signedAttrs.Add((DerObjectIdentifier)ctattb.AttrType, ctattb);
+	signedAttrs.Add((DerObjectIdentifier)mdattb.AttrType, mdattb);
+	signedAttrs.Add((DerObjectIdentifier)daattb.AttrType, daattb);
+
+	var signedAttributesTable = new Org.BouncyCastle.Asn1.Cms.AttributeTable(signedAttrs);
+	var signedAttributeGenerator = new DefaultSignedAttributeTableGenerator(signedAttributesTable);
+	CmsSignedDataGenerator gen = new CmsSignedDataGenerator();
+	gen.UseDerForCerts = true;
+	gen.AddCertificates(certStore);
+	gen.AddSigner((AsymmetricKeyParameter)prkBag.Key, certBag.Certificate, publicKeyParams.DigestParamSet.Id, signedAttributeGenerator, null);
+	var message = new CmsProcessableByteArray(fileBytes);
+
+	var attachedCAdESBES = gen.Generate(message, true);
+	var encodedSignedData = attachedCAdESBES.GetEncoded("DER");
+	var convertedSignedData = Convert.ToBase64String(encodedSignedData);
+	File.WriteAllBytes(_CAdES_BES_SigFileName, Encoding.ASCII.GetBytes(convertedSignedData));
+	Console.WriteLine("CAdES-BES generated");
 }
 
-static void Sample_11_Verify_CAdES_BES()
+static void Sample_11_Verify_CAdES_BES(string _CAdES_BES_SigFileName)
 {
-	//TODO
+	Console.WriteLine("\nSample_11_Verify_CAdES_BES");
+	var signatureBytes = File.ReadAllBytes(_CAdES_BES_SigFileName);
+	CmsSignedData cmsSignedData;
+	try
+	{
+		cmsSignedData = new CmsSignedData(signatureBytes);
+	}
+	catch
+	{
+		cmsSignedData = new CmsSignedData(Base64.Decode(signatureBytes));
+	}
+	Console.WriteLine($"Signed Content: {Encoding.ASCII.GetString((byte[])cmsSignedData.SignedContent.GetContent())}");
+	var certStoreInSig = cmsSignedData.GetCertificates("collection");
+	ICollection sgnrs = cmsSignedData.GetSignerInfos().GetSigners();
+	var e = sgnrs.GetEnumerator();
+	while (e.MoveNext())
+	{
+		var sgnr = (SignerInformation)e.Current;
+		var certs = certStoreInSig.GetMatches(sgnr.SignerID);
+		var ee = certs.GetEnumerator();
+		while (ee.MoveNext())
+		{
+			var cert = (Org.BouncyCastle.X509.X509Certificate)ee.Current;
+			bool reslt = sgnr.Verify(cert);
+			Console.WriteLine($"CAdES verification status: {reslt}");
+			var encodedSignedAttributes = sgnr.GetEncodedSignedAttributes();
+			var sig = sgnr.GetSignature();
+			var publicKey = (ECPublicKeyParameters)cert.GetPublicKey();
+			var publicKeyParams = (ECGost3410Parameters)publicKey.Parameters;
+			var encodedSignedAttributesHash = DigestUtilities.CalculateDigest(publicKeyParams.DigestParamSet.Id, encodedSignedAttributes);
+			var r = new Org.BouncyCastle.Math.BigInteger(1, sig, 32, 32);
+			var s = new Org.BouncyCastle.Math.BigInteger(1, sig, 0, 32);
+			var gostVerifier = new ECGost3410Signer();
+			gostVerifier.Init(false, publicKey);
+			Console.WriteLine($"Manual CAdES-BES verification status: {gostVerifier.VerifySignature(encodedSignedAttributesHash, r, s)}");
+		}
+	}
 }
 
 static void Sample_12_BuildCertChain()
