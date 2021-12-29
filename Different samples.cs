@@ -335,6 +335,26 @@ static void Sample_8_ImportPfx(string _PFXFileName, string _PFXPass)
     }
 }
 
+static void Sample_9_SignCertRequest ()
+{
+	//TODO
+}
+
+static void Sample_10_Create_CAdES_BES()
+{
+	//TODO
+}
+
+static void Sample_11_Verify_CAdES_BES()
+{
+	//TODO
+}
+
+static void Sample_12_BuildCertChain()
+{
+	//TODO
+}
+
 static void WritePemObject(Object _object, String _fileName)
 {
 	TextWriter TextWriter = File.CreateText($".\\{_fileName}");
