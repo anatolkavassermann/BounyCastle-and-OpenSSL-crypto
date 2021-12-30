@@ -62,11 +62,18 @@ function Sample_7_ExportPfx {
         [parameter(Mandatory=$false)] [System.String] $PassPhrase = "12345qwerty",
         [parameter(Mandatory=$false)] [System.String] $PFXFilePath = "pfx.pfx"
     )
-    openssl pkcs12 -inkey $PrKFilePath -in $CertFilePath -export -out $PFXFilePath -password pass:$PassPhrase
+    openssl pkcs12 -inkey $PrKFilePath -in $CertFilePath -export -out $PFXFilePath -password ('pass:' + $PassPhrase)
 }
 
 function Sample_8_ImportPfx {
-    #TODO
+    param (
+        [parameter(Mandatory=$false)] [System.String] $PrKFilePath = "outprk.pem",
+        [parameter(Mandatory=$false)] [System.String] $CertFilePath = "outCert.crt",
+        [parameter(Mandatory=$false)] [System.String] $PassPhrase = "12345qwerty",
+        [parameter(Mandatory=$false)] [System.String] $PFXFilePath = "pfx.pfx"
+    )
+    openssl pkcs12 -in $PFXFilePath -nocerts -password ('pass:' + $PassPhrase) -nodes -out $PrKFilePath
+    openssl pkcs12 -in $PFXFilePath -nokeys -password ('pass:' + $PassPhrase) -nodes -out $CertFilePath
 }
 
 function Sample_9_SignCertRequest {
