@@ -73,8 +73,8 @@ function Sample_8_ImportPfx {
         [parameter(Mandatory=$false)] [System.String] $PFXFilePath = "pfx.pfx"
         
     )
-    openssl pkcs12 -in $PFXFilePath -nokeys -nodes -password ('pass:' + $PassPhrase) | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | Set-Content $CertFilePath #export client cert from pfx
-    openssl pkcs12 -in $PFXFilePath -nocerts -password ('pass:' + $PassPhrase) -nodes | sed -ne '/-BEGIN PRIVATE KEY-/,/-END PRIVATE KEY-/p' | Set-Content $PrKFilePath #export client private key from pfx
+    openssl pkcs12 -in $PFXFilePath -nokeys -nodes -password ('pass:' + $PassPhrase) | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | Set-Content $CertFilePath #export client cert from pfx / взял совет отсюда https://unix.stackexchange.com/questions/367220/how-to-export-ca-certificate-chain-from-pfx-in-pem-format-without-bag-attributes
+    openssl pkcs12 -in $PFXFilePath -nocerts -password ('pass:' + $PassPhrase) -nodes | sed -ne '/-BEGIN PRIVATE KEY-/,/-END PRIVATE KEY-/p' | Set-Content $PrKFilePath #export client private key from pfx / взял совет отсюда https://unix.stackexchange.com/questions/367220/how-to-export-ca-certificate-chain-from-pfx-in-pem-format-without-bag-attributes
     openssl x509 -pubkey -noout -in ./outCert.crt | Set-Content "temppbk.pem" #export public key from cert
     Set-Content -Value "Test string" -Path temp;
     openssl dgst -sign $PrKFilePath -md_gost12_256 -binary -out temp.sig temp; #test pub key | priv key
