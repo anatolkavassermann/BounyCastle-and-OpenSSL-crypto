@@ -39,12 +39,8 @@ function Sample_4_Verify_RawSignature_ToFile {
 
 function Sample_5_GenerateCertRequest {
     param (
-        [parameter(Mandatory=$false)]
-        [System.String]
-        $PrKFilePath = "prk.pem",
-        [parameter(Mandatory=$false)]
-        [System.String]
-        $CertReqFilePath = "req.req"
+        [parameter(Mandatory=$false)] [System.String] $PrKFilePath = "prk.pem",
+        [parameter(Mandatory=$false)] [System.String] $CertReqFilePath = "req.req"
     )
     
     openssl req -new -key $PrKFilePath -subj "/CN=Anatolka/L=Moscow" -outform PEM -out $CertReqFilePath
@@ -52,21 +48,21 @@ function Sample_5_GenerateCertRequest {
 
 function Sample_6_GenerateSelfSignedCertificate {
     param (
-        [parameter(Mandatory=$false)]
-        [System.String]
-        $PrKFilePath = "prk.pem",
-        [parameter(Mandatory=$false)]
-        [System.String]
-        $CertReqFilePath = "req.req",
-        [parameter(Mandatory=$false)]
-        [System.String]
-        $CertFilePath = "SelfSignedCert.crt"
+        [parameter(Mandatory=$false)] [System.String] $PrKFilePath = "prk.pem",
+        [parameter(Mandatory=$false)] [System.String] $CertReqFilePath = "req.req",
+        [parameter(Mandatory=$false)] [System.String] $CertFilePath = "SelfSignedCert.crt"
     )
     openssl x509 -req -days 365 -in $CertReqFilePath -signkey $PrKFilePath -out $CertFilePath
 }
 
 function Sample_7_ExportPfx {
-    #TODO
+    param (
+        [parameter(Mandatory=$false)] [System.String] $PrKFilePath = "prk.pem",
+        [parameter(Mandatory=$false)] [System.String] $CertFilePath = "SelfSignedCert.crt",
+        [parameter(Mandatory=$false)] [System.String] $PassPhrase = "12345qwerty",
+        [parameter(Mandatory=$false)] [System.String] $PFXFilePath = "pfx.pfx"
+    )
+    openssl pkcs12 -inkey $PrKFilePath -in $CertFilePath -export -out $PFXFilePath -password pass:$PassPhrase
 }
 
 function Sample_8_ImportPfx {
@@ -103,3 +99,4 @@ Sample_3_Sign_And_Export_RawSignature_ToFile
 Sample_4_Verify_RawSignature_ToFile
 Sample_5_GenerateCertRequest
 Sample_6_GenerateSelfSignedCertificate
+Sample_7_ExportPfx
