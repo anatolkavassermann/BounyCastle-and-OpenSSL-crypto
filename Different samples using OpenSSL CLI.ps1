@@ -77,7 +77,7 @@ function Sample_8_ImportPfx {
 }
 
 function Sample_9_SignCertRequest {
-    #TODO
+    #Just the same as Sample_6_GenerateSelfSignedCertificate
 }
 
 function Sample_10_Create_Attached_CAdES_BES {
@@ -107,3 +107,5 @@ Sample_4_Verify_RawSignature_ToFile
 Sample_5_GenerateCertRequest
 Sample_6_GenerateSelfSignedCertificate
 Sample_7_ExportPfx
+Sample_8_ImportPfx
+#Sample_9_SignCertRequest: Just the same as Sample_6_GenerateSelfSignedCertificate
