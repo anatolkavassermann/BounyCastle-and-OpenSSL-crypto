@@ -71,9 +71,25 @@ function Sample_8_ImportPfx {
         [parameter(Mandatory=$false)] [System.String] $CertFilePath = "outCert.crt",
         [parameter(Mandatory=$false)] [System.String] $PassPhrase = "12345qwerty",
         [parameter(Mandatory=$false)] [System.String] $PFXFilePath = "pfx.pfx"
+        
     )
-    openssl pkcs12 -in $PFXFilePath -nocerts -password ('pass:' + $PassPhrase) -nodes -out $PrKFilePath
-    openssl pkcs12 -in $PFXFilePath -nokeys -password ('pass:' + $PassPhrase) -nodes -out $CertFilePath
+    openssl pkcs12 -in $PFXFilePath -nokeys -nodes -password ('pass:' + $PassPhrase) | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | Set-Content $CertFilePath #export client cert from pfx
+    openssl pkcs12 -in $PFXFilePath -nocerts -password ('pass:' + $PassPhrase) -nodes | sed -ne '/-BEGIN PRIVATE KEY-/,/-END PRIVATE KEY-/p' | Set-Content $PrKFilePath #export client private key from pfx
+    openssl x509 -pubkey -noout -in ./outCert.crt | Set-Content "temppbk.pem" #export public key from cert
+    Set-Content -Value "Test string" -Path temp;
+    openssl dgst -sign $PrKFilePath -md_gost12_256 -binary -out temp.sig temp; #test pub key | priv key
+    $ans = openssl dgst -verify "temppbk.pem" -md_gost12_256 -signature temp.sig temp #test pub key | priv key
+    switch ($ans) {
+        "Verified OK" {
+            Write-Host -ForegroundColor Green -Object "Signature Verified"
+        }
+        default {
+            Write-Host -ForegroundColor Red -Object "Signature NOT Verified"
+        }
+    }
+    rm temp;
+    rm temp.sig
+    rm temppbk.pem
 }
 
 function Sample_9_SignCertRequest {
