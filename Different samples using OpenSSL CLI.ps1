@@ -38,7 +38,16 @@ function Sample_4_Verify_RawSignature_ToFile {
 }
 
 function Sample_5_GenerateCertRequest {
-    #TODO
+    param (
+        [parameter(Mandatory=$false)]
+        [System.String]
+        $PrKFilePath = "prk.pem",
+        [parameter(Mandatory=$false)]
+        [System.String]
+        $CertReqFilePath = "req.req"
+    )
+    
+    openssl req -new -key $PrKFilePath -subj "/CN=Anatolka/L=Moscow" -outform PEM -out $CertReqFilePath
 }
 
 function Sample_6_GenerateSelfSignedCertificate {
@@ -81,3 +90,4 @@ Sample_1_Generate_Gost3410_2012_KeyPair
 #Sample_2_Read_Gost3410_2012_KeyPair_FromFile is not necessary / второй пример с чтением открытого/закрытого ключа, на мой взгляд, не нужен. Если очень нужно, можно воспользоваться cat prk.pem
 Sample_3_Sign_And_Export_RawSignature_ToFile
 Sample_4_Verify_RawSignature_ToFile
+Sample_5_GenerateCertRequest
