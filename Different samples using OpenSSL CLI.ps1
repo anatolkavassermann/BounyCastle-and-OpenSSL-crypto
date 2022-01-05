@@ -5,7 +5,9 @@ function Sample_1_Generate_Gost3410_2012_KeyPair {
     )
 
     openssl genpkey -outform PEM -algorithm gost2012_256 -pkeyopt paramset:TCA -out $PrKFilePath
-    openssl req -new -key $PrKFilePath -subj "/" -noout -pubkey -outform PEM -out $PbKFilePath #не знаю, как иначе получить открытый ключ. Используя команду "openssl genpkey" можно получить открытый ключ, но он будет представлен в виде координат / don't know how else to get the private key. you can get the public key using the command "openssl genpkey" , but it will be represented as a coordinates
+    #не знаю, как иначе получить открытый ключ. Используя команду "openssl genpkey" можно получить открытый ключ, но он будет представлен в виде координат
+    #I don't know how else to get the private key. you can get the public key using the command "openssl genpkey" , but it will be represented as a coordinates
+    openssl req -new -key $PrKFilePath -subj "/" -noout -pubkey -outform PEM -out $PbKFilePath 
 }
 
 function Sample_3_Sign_And_Export_RawSignature_ToFile {
@@ -73,8 +75,8 @@ function Sample_8_ImportPfx {
         [parameter(Mandatory=$false)] [System.String] $PFXFilePath = "pfx.pfx"
         
     )
-    openssl pkcs12 -in $PFXFilePath -nokeys -nodes -password ('pass:' + $PassPhrase) | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | Set-Content $CertFilePath #export client cert from pfx / взял совет отсюда https://unix.stackexchange.com/questions/367220/how-to-export-ca-certificate-chain-from-pfx-in-pem-format-without-bag-attributes
-    openssl pkcs12 -in $PFXFilePath -nocerts -password ('pass:' + $PassPhrase) -nodes | sed -ne '/-BEGIN PRIVATE KEY-/,/-END PRIVATE KEY-/p' | Set-Content $PrKFilePath #export client private key from pfx / взял совет отсюда https://unix.stackexchange.com/questions/367220/how-to-export-ca-certificate-chain-from-pfx-in-pem-format-without-bag-attributes
+    openssl pkcs12 -in $PFXFilePath -nokeys -nodes -password ('pass:' + $PassPhrase) | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | Set-Content $CertFilePath 
+    openssl pkcs12 -in $PFXFilePath -nocerts -password ('pass:' + $PassPhrase) -nodes | sed -ne '/-BEGIN PRIVATE KEY-/,/-END PRIVATE KEY-/p' | Set-Content $PrKFilePath 
     openssl x509 -pubkey -noout -in ./outCert.crt | Set-Content "temppbk.pem" #export public key from cert
     Set-Content -Value "Test string" -Path temp;
     openssl dgst -sign $PrKFilePath -md_gost12_256 -binary -out temp.sig temp; #test pub key | priv key
