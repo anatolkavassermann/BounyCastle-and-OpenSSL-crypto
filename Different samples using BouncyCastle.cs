@@ -532,7 +532,34 @@ static void Sample_12_BuildCertChain()
 
 static void Sample_13_SignCRL()
 {
-	//TODO
+	Console.WriteLine("\nSample_13_SignCRL");
+	var secureRandom = new SecureRandom();
+	var pfxBytes = File.ReadAllBytes(_PFXFileName);
+	var builder = new Pkcs12StoreBuilder();
+	builder.SetUseDerEncoding(true);
+	var store = builder.Build();
+	var m = new MemoryStream(pfxBytes);
+	store.Load(m, _PFXPass.ToCharArray());
+	m.Close();
+	AsymmetricKeyEntry prkBag = store.GetKey("prk");
+	X509CertificateEntry certBag = store.GetCertificate("cert");
+	Org.BouncyCastle.X509.X509V2CrlGenerator CrlGen = new Org.BouncyCastle.X509.X509V2CrlGenerator();
+	CrlGen.SetIssuerDN(certBag.Certificate.IssuerDN);
+	CrlGen.SetThisUpdate(DateTime.Now);
+	CrlGen.SetNextUpdate(DateTime.Now.AddDays(1));
+	CrlGen.AddCrlEntry(certBag.Certificate.SerialNumber, DateTime.Now, CrlReason.Unspecified);
+	ISignatureFactory signatureFactory = new Asn1SignatureFactory(RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_256.Id, (AsymmetricKeyParameter)prkBag.Key);
+	X509Crl crl = CrlGen.Generate(signatureFactory);
+	WritePemObject(crl, _CrlFileName);
+	try
+    {
+		crl.Verify(certBag.Certificate.GetPublicKey());
+		Console.WriteLine("CRL generated!");
+	}
+	catch
+    {
+		Console.WriteLine("CRL NOT generated!");
+	}
 }
 
 static void Sample_14_CreateOCSPResponse()
