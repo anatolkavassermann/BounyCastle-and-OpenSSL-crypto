@@ -6,7 +6,7 @@ using System.Text;
 using System.IO;
 using System.Collections;
 
-//BouncyCastle v. 1.9.0
+//BouncyCastle v 1.9.0
 using Org.BouncyCastle.Pkcs;
 using Org.BouncyCastle.OpenSsl;
 using Org.BouncyCastle.X509;
@@ -27,6 +27,8 @@ using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Asn1.Rosstandart;
 
+//ASN1.Reader
+using Net.Asn1.Reader;
 
 var PrKeyFileName = "prk.pem";
 var PbKeyFileName = "pbk.pem";
@@ -38,8 +40,9 @@ var CertRequestFileName = "req.req";
 var SelfSignedCertFileName = "cert.crt";
 var PFXFileName = "pfx.pfx";
 var PFXPass = "12345qwerty";
-string CAdES_BES_SigFileName = "toBeSignedCAdES_BES.sig";
-string IssuedCertFileName = "issued_cert.crt";
+var CAdES_BES_SigFileName = "toBeSignedCAdES_BES.sig";
+var IssuedCertFileName = "issued_cert.crt";
+var Header_Key_FileName = "header.key";
 
 Sample_1_Generate_Gost3410_2012_KeyPair(PrKeyFileName, PbKeyFileName, ToBeSigned);
 Sample_2_Read_Gost3410_2012_KeyPair_FromFile(PrKeyFileName, PbKeyFileName, ToBeSigned);
@@ -53,8 +56,9 @@ Sample_9_SignCertRequest(PFXFileName, PFXPass, CertRequestFileName, IssuedCertFi
 Sample_10_Create_Attached_CAdES_BES(PFXFileName, PFXPass, CAdES_BES_SigFileName, ToBeSignedFileName);
 Sample_11_Verify_Attached_CAdES_BES(CAdES_BES_SigFileName);
 //Sample_12_BuildCertChain
-//Sample_13_SignCRL
+Sample_13_SignCRL
 //Sample_14_CreateOCSPResponse
+Sample_15_ExportCertsFromCryptoProContainer(Header_Key_FileName);
 
 static void Sample_1_Generate_Gost3410_2012_KeyPair(string _PrKeyFileName, string _PbKeyFileName, string _ToBeSigned)
 {
@@ -565,6 +569,37 @@ static void Sample_13_SignCRL()
 static void Sample_14_CreateOCSPResponse()
 {
 	//TODO
+}
+
+static void Sample_15_ExportCertsFromCryptoProContainer (string _Header_Key_FileName)
+{
+	var b = File.ReadAllBytes(_Header_Key_FileName);
+	var m = new MemoryStream(b);
+	var berReader = new BerReader(m);
+	var header_key = berReader.ReadToEnd(true);
+	var potentialCertStore = header_key.ChildNodes[0].ChildNodes[0];
+	List<Org.BouncyCastle.X509.X509Certificate> certStore = new List<Org.BouncyCastle.X509.X509Certificate>();
+	var e = potentialCertStore.ChildNodes.GetEnumerator();
+	while (e.MoveNext())
+    	{
+		var tempCertRawBytes = e.Current.RawValue;
+		try
+        	{
+			Org.BouncyCastle.X509.X509Certificate tempCert = new Org.BouncyCastle.X509.X509Certificate(tempCertRawBytes);
+			certStore.Add(tempCert);
+		}
+		catch
+        	{
+			//TODO
+		}
+    	}
+	switch (certStore.Count > 0)
+    	{
+		case false: {
+				Console.WriteLine("No certs found!");
+				break;
+            	}
+    	}
 }
 
 static void WritePemObject(Object _object, String _fileName)
