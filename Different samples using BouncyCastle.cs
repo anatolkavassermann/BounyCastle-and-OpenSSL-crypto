@@ -30,6 +30,10 @@ using Org.BouncyCastle.Asn1.Rosstandart;
 //ASN1.Reader
 using Net.Asn1.Reader;
 
+//Itext.Sharp
+using iTextSharp.text.io;
+using iTextSharp.text.pdf;
+
 var PrKeyFileName = "prk.pem";
 var PbKeyFileName = "pbk.pem";
 var ToBeSigned = "Hello, world!";
@@ -43,6 +47,8 @@ var PFXPass = "12345qwerty";
 var CAdES_BES_SigFileName = "toBeSignedCAdES_BES.sig";
 var IssuedCertFileName = "issued_cert.crt";
 var Header_Key_FileName = "header.key";
+var CrlFileName = "crl.crl";
+var PdfFileName = "1.pdf";
 
 Sample_1_Generate_Gost3410_2012_KeyPair(PrKeyFileName, PbKeyFileName, ToBeSigned);
 Sample_2_Read_Gost3410_2012_KeyPair_FromFile(PrKeyFileName, PbKeyFileName, ToBeSigned);
@@ -56,9 +62,10 @@ Sample_9_SignCertRequest(PFXFileName, PFXPass, CertRequestFileName, IssuedCertFi
 Sample_10_Create_Attached_CAdES_BES(PFXFileName, PFXPass, CAdES_BES_SigFileName, ToBeSignedFileName);
 Sample_11_Verify_Attached_CAdES_BES(CAdES_BES_SigFileName);
 //Sample_12_BuildCertChain
-Sample_13_SignCRL
+Sample_13_SignCRL(CrlFileName);
 //Sample_14_CreateOCSPResponse
 Sample_15_ExportCertsFromCryptoProContainer(Header_Key_FileName);
+Sample_16_VerifyPAdES(PdfFileName);
 
 static void Sample_1_Generate_Gost3410_2012_KeyPair(string _PrKeyFileName, string _PbKeyFileName, string _ToBeSigned)
 {
@@ -534,7 +541,7 @@ static void Sample_12_BuildCertChain()
 	//TODO
 }
 
-static void Sample_13_SignCRL()
+static void Sample_13_SignCRL(string _CrlFileName)
 {
 	Console.WriteLine("\nSample_13_SignCRL");
 	var secureRandom = new SecureRandom();
@@ -600,6 +607,80 @@ static void Sample_15_ExportCertsFromCryptoProContainer (string _Header_Key_File
 				break;
             	}
     	}
+}
+
+static void Sample_16_VerifyPAdES (string _PdfFileName) 
+{
+	if (args.Length < 1)
+            {
+                Console.WriteLine("Pdf.Verify <document>");
+                
+            }
+            string document = _PdfFileName;
+
+            PdfReader reader = new PdfReader(document);
+
+            AcroFields af = reader.AcroFields;
+            List<string> names = af.GetSignatureNames();
+            foreach (string name in names)
+            {
+                string message = "Signature name: " + name;
+                message += "\nSignature covers whole document: " + af.SignatureCoversWholeDocument(name);
+                message += "\nDocument revision: " + af.GetRevision(name) + " of " + af.TotalRevisions;
+
+                PdfDictionary singleSignature = af.GetSignatureDictionary(name);
+                PdfString asString1 = singleSignature.GetAsString(PdfName.CONTENTS);
+                byte[] signatureBytes = asString1.GetOriginalBytes();
+
+                RandomAccessFileOrArray safeFile = reader.SafeFile;
+
+                PdfArray asArray = singleSignature.GetAsArray(PdfName.BYTERANGE);
+                using (
+                    Stream stream =
+                        (Stream)
+                        new RASInputStream(
+                            new RandomAccessSourceFactory().CreateRanged(
+                                safeFile.CreateSourceView(),
+                                (IList<long>)asArray.AsLongArray())))
+                {
+                    using (MemoryStream ms = new MemoryStream((int)stream.Length))
+                    {
+                        stream.CopyTo(ms);
+                        byte[] data = ms.GetBuffer();
+
+                        var ContentInfo = new CmsProcessableByteArray(data);
+                        var CmsSignedData = new CmsSignedData(ContentInfo, signatureBytes);
+
+
+                        var certStoreInSig = CmsSignedData.GetCertificates("collection");
+                        var sgnrs = CmsSignedData.GetSignerInfos().GetSigners();
+                        var e = sgnrs.GetEnumerator();
+                        while (e.MoveNext())
+                        {
+                            var sgnr = (SignerInformation)e.Current;
+                            var certs = certStoreInSig.GetMatches(sgnr.SignerID);
+                            var ee = certs.GetEnumerator();
+                            while (ee.MoveNext())
+                            {
+                                var cert = (Org.BouncyCastle.X509.X509Certificate)ee.Current;
+                                bool reslt = sgnr.Verify(cert);
+                                Console.WriteLine($"PAdES verification status: {reslt}");
+                                var encodedSignedAttributes = sgnr.GetEncodedSignedAttributes();
+                                var sig = sgnr.GetSignature();
+                                var publicKey = (ECPublicKeyParameters)cert.GetPublicKey();
+                                var publicKeyParams = (ECGost3410Parameters)publicKey.Parameters;
+                                var encodedSignedAttributesHash = DigestUtilities.CalculateDigest(publicKeyParams.DigestParamSet.Id, (byte[])ContentInfo.GetContent());
+                                var r = new Org.BouncyCastle.Math.BigInteger(1, sig, 32, 32);
+                                var s = new Org.BouncyCastle.Math.BigInteger(1, sig, 0, 32);
+                                var gostVerifier = new ECGost3410Signer();
+                                gostVerifier.Init(false, publicKey);
+                                Console.WriteLine($"Manual PAdES verification status: {gostVerifier.VerifySignature(encodedSignedAttributesHash, r, s)}");
+                            }
+                        }
+                        Console.ReadKey();
+                    }
+                }
+            }
 }
 
 static void WritePemObject(Object _object, String _fileName)
