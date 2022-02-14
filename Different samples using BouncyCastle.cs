@@ -609,7 +609,7 @@ static void Sample_15_ExportCertsFromCryptoProContainer (string _Header_Key_File
     	}
 }
 
-static void Sample_16_VerifyPAdES (string _PdfFileName) 
+static void Sample_16_VerifyPAdESUsingOldITextSharpAPI (string _PdfFileName) 
 {
 	if (args.Length < 1)
             {
@@ -682,6 +682,56 @@ static void Sample_16_VerifyPAdES (string _PdfFileName)
                 }
             }
 }
+
+static void Sample_17_VerifyUsingNewITextSharpAPI(string _fileName) 
+{
+	Console.WriteLine($"Verify {_fileName} using new ITextSharp interface");
+	iText.Kernel.Pdf.PdfReader reader = new iText.Kernel.Pdf.PdfReader(_fileName);
+        iText.Kernel.Pdf.PdfDocument doc = new iText.Kernel.Pdf.PdfDocument(reader);
+        SignatureUtil util = new SignatureUtil(doc);
+        try
+        {
+        	iText.Signatures.PdfPKCS7 sig = util.ReadSignatureData("Signature1");
+                if (sig != null)
+                {
+                    var flag = sig.VerifySignatureIntegrityAndAuthenticity();
+                    Console.WriteLine($"Signature verification status: {flag}");
+                }
+         }
+         catch
+         {
+
+         }
+}
+
+static void Sample_18_SignUsingNewITextSharpAPI(string _fileName, string _pfxFileName, string _pfxPass) 
+{
+	var pfxBytes = File.ReadAllBytes(_pfxPath);
+        var builder = new Pkcs12StoreBuilder();
+        builder.SetUseDerEncoding(false);
+        var store = builder.Build();
+        var m = new MemoryStream(pfxBytes);
+        store.Load(m, _pfxPass.ToCharArray());
+        m.Close();
+        AsymmetricKeyEntry prkBag = store.GetKey("prk");
+        X509CertificateEntry certBag = store.GetCertificate("cert");
+        var publicKey = (ECPublicKeyParameters)certBag.Certificate.GetPublicKey();
+        var publickeyparams = (ECGost3410Parameters)publicKey.Parameters;
+
+        iText.Kernel.Pdf.PdfReader reader = new iText.Kernel.Pdf.PdfReader(_fileName);
+        PdfSigner signer = new PdfSigner(reader, new FileStream(_fileName + ".signed.pdf", FileMode.Create, FileAccess.ReadWrite), new StampingProperties());
+        var dn = certBag.Certificate.SubjectDN.GetValueList(new DerObjectIdentifier("2.5.4.3"));
+        iText.Signatures.PdfSignatureAppearance appearance = signer.GetSignatureAppearance()
+        .SetReason("A")
+        .SetLocation("B")
+        .SetReuseAppearance(false)
+        .SetPageRect(new iText.Kernel.Geom.Rectangle(36, 648, 200, 100))
+        .SetPageNumber(1)
+        .SetCertificate(certBag.Certificate);
+        signer.SetFieldName("Signature1");
+        iText.Signatures.IExternalSignature pks = new iText.Signatures.PrivateKeySignature(prkBag.Key, publickeyparams.DigestParamSet.Id);
+        signer.SignDetached(pks, new X509Certificate[] { certBag.Certificate }, null, null, null, 0, PdfSigner.CryptoStandard.CADES);
+} 
 
 static void WritePemObject(Object _object, String _fileName)
 {
