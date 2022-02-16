@@ -718,11 +718,17 @@ static void Sample_18_SignUsingNewITextSharpAPI(string _fileName, string _pfxFil
         var publicKey = (ECPublicKeyParameters)certBag.Certificate.GetPublicKey();
         var publickeyparams = (ECGost3410Parameters)publicKey.Parameters;
 
-        PdfReader reader = new PdfReader(PdfFileName);
+	PdfReader reader = new PdfReader(PdfFileName);
 	PdfDocument p = new PdfDocument(reader);
 	reader = new PdfReader(PdfFileName);
-	PdfDocumentContentParser ppp = new iText.Kernel.Pdf.Canvas.Parser.PdfDocumentContentParser(p);
-	TextMarginFinder finder = ppp.ProcessContent(p.GetNumberOfPages(), new iText.Kernel.Pdf.Canvas.Parser.Listener.TextMarginFinder());
+	PdfWriter writer = new PdfWriter(new FileStream($"{PdfFileName}.temp", FileMode.Create, FileAccess.ReadWrite), new WriterProperties().SetFullCompressionMode(false)); //Избавляемся от Cross-Reference Streams
+	PdfDocument toBeSaved = new PdfDocument(reader, writer);
+	toBeSaved.Close();
+	writer.Close();
+	reader.Close();
+	reader = new PdfReader($"{PdfFileName}.temp");
+	PdfDocumentContentParser pcp = new iText.Kernel.Pdf.Canvas.Parser.PdfDocumentContentParser(p);
+	TextMarginFinder finder = pcp.ProcessContent(p.GetNumberOfPages(), new iText.Kernel.Pdf.Canvas.Parser.Listener.TextMarginFinder());
 	Rectangle datarec = finder.GetTextRectangle();
 	PdfSigner signer = new PdfSigner(reader, new FileStream($"{PdfFileName}.signed.pdf", FileMode.OpenOrCreate, FileAccess.ReadWrite), new StampingProperties().UseAppendMode());
 	signer.SetFieldName("Signature1");
