@@ -718,17 +718,23 @@ static void Sample_18_SignUsingNewITextSharpAPI(string _fileName, string _pfxFil
         var publicKey = (ECPublicKeyParameters)certBag.Certificate.GetPublicKey();
         var publickeyparams = (ECGost3410Parameters)publicKey.Parameters;
 
-        iText.Kernel.Pdf.PdfReader reader = new iText.Kernel.Pdf.PdfReader(_fileName);
-        PdfSigner signer = new PdfSigner(reader, new FileStream(_fileName + ".signed.pdf", FileMode.Create, FileAccess.ReadWrite), new StampingProperties());
-        var dn = certBag.Certificate.SubjectDN.GetValueList(new DerObjectIdentifier("2.5.4.3"));
-        iText.Signatures.PdfSignatureAppearance appearance = signer.GetSignatureAppearance()
-        .SetReason("A")
-        .SetLocation("B")
-        .SetReuseAppearance(false)
-        .SetPageRect(new iText.Kernel.Geom.Rectangle(36, 648, 200, 100))
-        .SetPageNumber(1)
-        .SetCertificate(certBag.Certificate);
-        signer.SetFieldName("Signature1");
+        PdfReader reader = new PdfReader(PdfFileName);
+	PdfDocument p = new PdfDocument(reader);
+	reader = new PdfReader(PdfFileName);
+	PdfDocumentContentParser ppp = new iText.Kernel.Pdf.Canvas.Parser.PdfDocumentContentParser(p);
+	TextMarginFinder finder = ppp.ProcessContent(p.GetNumberOfPages(), new iText.Kernel.Pdf.Canvas.Parser.Listener.TextMarginFinder());
+	Rectangle datarec = finder.GetTextRectangle();
+	PdfSigner signer = new PdfSigner(reader, new FileStream($"{PdfFileName}.signed.pdf", FileMode.OpenOrCreate, FileAccess.ReadWrite), new StampingProperties().UseAppendMode());
+	signer.SetFieldName("Signature1");
+	Rectangle sigrec = new Rectangle(datarec.GetX() + datarec.GetWidth() / 2, datarec.GetY() - 100, 200, 100);
+	PdfSignatureAppearance appearance = signer.GetSignatureAppearance()
+	.SetReason("A")
+	.SetLocation("B")
+	.SetReuseAppearance(false)
+	.SetPageRect(sigrec)
+	.SetPageNumber(p.GetNumberOfPages())
+	.SetCertificate(certBag.Certificate);
+	appearance.SetLayer2Font(iText.Kernel.Font.PdfFontFactory.CreateFont(iText.IO.Font.Constants.StandardFonts.TIMES_ROMAN));
         iText.Signatures.IExternalSignature pks = new iText.Signatures.PrivateKeySignature(prkBag.Key, publickeyparams.DigestParamSet.Id);
         signer.SignDetached(pks, new X509Certificate[] { certBag.Certificate }, null, null, null, 0, PdfSigner.CryptoStandard.CADES);
 } 
