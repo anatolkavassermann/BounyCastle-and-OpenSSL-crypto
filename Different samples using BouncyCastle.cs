@@ -721,7 +721,7 @@ static void Sample_18_SignUsingNewITextSharpAPI(string _fileName, string _pfxFil
 	PdfReader reader = new PdfReader(PdfFileName);
 	PdfDocument p = new PdfDocument(reader);
 	reader = new PdfReader(PdfFileName);
-	PdfWriter writer = new PdfWriter(new FileStream($"{PdfFileName}.temp", FileMode.Create, FileAccess.ReadWrite), new WriterProperties().SetFullCompressionMode(false)); //Избавляемся от Cross-Reference Streams
+	PdfWriter writer = new PdfWriter(new FileStream($"{PdfFileName}.temp", FileMode.Create, FileAccess.ReadWrite), new WriterProperties().SetFullCompressionMode(false)); //решаем проблему со сжатием при наличии в файле Cross-Reference Streams
 	PdfDocument toBeSaved = new PdfDocument(reader, writer);
 	toBeSaved.Close();
 	writer.Close();
