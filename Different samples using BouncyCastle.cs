@@ -27,12 +27,23 @@ using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Asn1.Rosstandart;
 
+//XMLBC
+using Org.BouncyCastle.Crypto.Xml;
+
 //ASN1.Reader
 using Net.Asn1.Reader;
 
 //Itext.Sharp
 using iTextSharp.text.io;
 using iTextSharp.text.pdf;
+
+//New IText
+using iText.Signatures;
+using iText.Kernel.Pdf;
+using iText.Kernel.Geom;
+using iText.Layout;
+using iText.Kernel.Pdf.Canvas.Parser;
+using iText.Kernel.Pdf.Canvas.Parser.Listener;
 
 var PrKeyFileName = "prk.pem";
 var PbKeyFileName = "pbk.pem";
