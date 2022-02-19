@@ -743,7 +743,34 @@ static void Sample_18_SignUsingNewITextSharpAPI(string _fileName, string _pfxFil
 	appearance.SetLayer2Font(iText.Kernel.Font.PdfFontFactory.CreateFont(iText.IO.Font.Constants.StandardFonts.TIMES_ROMAN));
         iText.Signatures.IExternalSignature pks = new iText.Signatures.PrivateKeySignature(prkBag.Key, publickeyparams.DigestParamSet.Id);
         signer.SignDetached(pks, new X509Certificate[] { certBag.Certificate }, null, null, null, 0, PdfSigner.CryptoStandard.CADES);
-} 
+}
+
+Sample_19_CreateXMLDSig () 
+{
+	string ExampleXml = @"<?xml version=""1.0""?>
+	<example>
+	<test>some text node</test>
+	</example>";
+	System.Xml.XmlDocument doc = new System.Xml.XmlDocument();
+	doc.LoadXml(ExampleXml);
+	var signedXml = new SignedXml(doc)
+	{
+    	SigningKey = keyPair.Private,
+	};
+	var reference = new Reference();
+	reference.Uri = "";
+	reference.AddTransform(new XmlDsigEnvelopedSignatureTransform());
+	reference.DigestMethod = SignedXml.XmlDsigGost3411_2012_256_Url;
+	signedXml.AddReference(reference);
+	signedXml.KeyInfo = new KeyInfo();
+	signedXml.KeyInfo.AddClause(new KeyInfoX509Data(x509));
+	signedXml.SignedInfo.SignatureMethod = SignedXml.XmlDsigGost3410ObsoleteUrl;
+	signedXml.ComputeSignature();
+
+	System.Xml.XmlElement xmlDigitalSignature = signedXml.GetXml();
+	doc.DocumentElement.AppendChild(doc.ImportNode(xmlDigitalSignature, true));
+	doc.Save("1.signed.xml");
+}
 
 static void WritePemObject(Object _object, String _fileName)
 {
