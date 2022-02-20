@@ -1,12 +1,18 @@
-//.Net 6.0
-//.Net Assemblies
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.IO;
-using System.Collections;
+//New IText
+using iText.Signatures;
+using iText.Kernel.Pdf;
+using iText.Kernel.Geom;
+using iText.Layout;
+using iText.Kernel.Pdf.Canvas.Parser;
+using iText.Kernel.Pdf.Canvas.Parser.Listener;
 
-//BouncyCastle v 1.9.0
+//.Net Framework 4.8
+using System.Text;
+using System.Collections;
+using System.Xml;
+
+
+//BC 1.9.0
 using Org.BouncyCastle.Pkcs;
 using Org.BouncyCastle.OpenSsl;
 using Org.BouncyCastle.X509;
@@ -27,56 +33,71 @@ using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Asn1.Rosstandart;
 
-//XMLBC
+//BC XML
 using Org.BouncyCastle.Crypto.Xml;
 
-//ASN1.Reader
+//ASN.1 Reader
 using Net.Asn1.Reader;
 
-//Itext.Sharp
-using iTextSharp.text.io;
-using iTextSharp.text.pdf;
-
-//New IText
-using iText.Signatures;
-using iText.Kernel.Pdf;
-using iText.Kernel.Geom;
-using iText.Layout;
-using iText.Kernel.Pdf.Canvas.Parser;
-using iText.Kernel.Pdf.Canvas.Parser.Listener;
-
-var PrKeyFileName = "prk.pem";
-var PbKeyFileName = "pbk.pem";
+//For CAdES BES
 var ToBeSigned = "Hello, world!";
 var ToBeSignedFileName = "toBeSigned.txt";
 File.WriteAllBytes(ToBeSignedFileName, Encoding.ASCII.GetBytes(ToBeSigned));
+
+//For XMLSSIG
+string ExampleXml = @"<?xml version=""1.0""?>
+<ToBeSigned>
+<Data>Hello, world!</Data>
+</ToBeSigned>";
+XmlDocument doc = new XmlDocument();
+doc.LoadXml(ExampleXml);
+var XMLToBeSignedFileName = "XMLtoBeSigned.xml";
+doc.Save(XMLToBeSignedFileName);
+
+//For PAdES
+var PDFToBeSignedFileName = "PDFtoBeSigned.pdf";
+
+//keydata
+var PrKeyFileName = "prk.pem";
+var PbKeyFileName = "pbk.pem";
+
+//Rawsig FileName
 var RawSigFileName = "toBeSignedRaw.sig";
+
+//For CA
 var CertRequestFileName = "req.req";
 var SelfSignedCertFileName = "cert.crt";
+var IssuedCertFileName = "issued_cert.crt";
+var CrlFileName = "crl.crl";
+
+//For PFX
 var PFXFileName = "pfx.pfx";
 var PFXPass = "12345qwerty";
-var CAdES_BES_SigFileName = "toBeSignedCAdES_BES.sig";
-var IssuedCertFileName = "issued_cert.crt";
+
+//For CAdES, XMLDSIG and PAdES
+var CAdESBES_SigFileName = "toBeSigned_CAdESBES.sig";
+var XMLDSIG_SigFileName = "XMLtoBeSigned_XMLDSIG.sig";
+var PAdES_SigFileName = "PDFtoBeSigned_PAdES.signed.pdf";
+
+//For export certs from cpro key container
 var Header_Key_FileName = "header.key";
-var CrlFileName = "crl.crl";
-var PdfFileName = "1.pdf";
 
 Sample_1_Generate_Gost3410_2012_KeyPair(PrKeyFileName, PbKeyFileName, ToBeSigned);
 Sample_2_Read_Gost3410_2012_KeyPair_FromFile(PrKeyFileName, PbKeyFileName, ToBeSigned);
-Sample_3_Sign_And_Export_RawSignature_ToFile (PrKeyFileName, PbKeyFileName, RawSigFileName, ToBeSignedFileName);
+Sample_3_Sign_And_Export_RawSignature_ToFile(PrKeyFileName, PbKeyFileName, RawSigFileName, ToBeSignedFileName);
 Sample_4_ImportandVerify_RawSignature(PbKeyFileName, RawSigFileName, ToBeSignedFileName);
 Sample_5_GenerateCertRequest(PrKeyFileName, PbKeyFileName, CertRequestFileName);
 Sample_6_GenerateSelfSignedCertificate(PrKeyFileName, PbKeyFileName, SelfSignedCertFileName);
 Sample_7_ExportPfx(PrKeyFileName, PFXFileName, SelfSignedCertFileName, PFXPass);
 Sample_8_ImportPfx(PFXFileName, PFXPass);
 Sample_9_SignCertRequest(PFXFileName, PFXPass, CertRequestFileName, IssuedCertFileName);
-Sample_10_Create_Attached_CAdES_BES(PFXFileName, PFXPass, CAdES_BES_SigFileName, ToBeSignedFileName);
-Sample_11_Verify_Attached_CAdES_BES(CAdES_BES_SigFileName);
-//Sample_12_BuildCertChain
-Sample_13_SignCRL(CrlFileName);
-//Sample_14_CreateOCSPResponse
-Sample_15_ExportCertsFromCryptoProContainer(Header_Key_FileName);
-Sample_16_VerifyPAdES(PdfFileName);
+Sample_10_Create_Attached_CAdES_BES(PFXFileName, PFXPass, CAdESBES_SigFileName, ToBeSignedFileName);
+Sample_11_Verify_Attached_CAdES_BES(CAdESBES_SigFileName);
+Sample_12_SignCRL(CrlFileName, PFXFileName, PFXPass);
+Sample_13_CreateXMLDSig(PFXFileName, PFXPass, XMLDSIG_SigFileName, XMLToBeSignedFileName);
+Sample_14_VerifyXMLDSig(XMLDSIG_SigFileName);
+Sample_15_CreatePAdES(PFXFileName, PFXPass, PAdES_SigFileName, PDFToBeSignedFileName);
+Sample_16_VerifyPAdES(PAdES_SigFileName);
 
 static void Sample_1_Generate_Gost3410_2012_KeyPair(string _PrKeyFileName, string _PbKeyFileName, string _ToBeSigned)
 {
@@ -138,21 +159,21 @@ static void Sample_2_Read_Gost3410_2012_KeyPair_FromFile(string _PrKeyFileName, 
 	bool result = signer.VerifySignature(hashCode, signature[0], signature[1]);
 	Console.WriteLine($"Key pair match: {result}");
 	switch (result)
-    {
+	{
 		case true:
-            {
+			{
 				Console.WriteLine("Key pair imported");
 				break;
-            }
+			}
 		default:
-            {
+			{
 				Console.WriteLine("Key pair not imported");
 				break;
-            }
-    }
+			}
+	}
 }
 
-static void Sample_3_Sign_And_Export_RawSignature_ToFile (string _PrKeyFileName, string _PbKeyFileName, string _RawSigFileName, string _ToBeSignedFileName)
+static void Sample_3_Sign_And_Export_RawSignature_ToFile(string _PrKeyFileName, string _PbKeyFileName, string _RawSigFileName, string _ToBeSignedFileName)
 {
 	Console.WriteLine("\nSample_3_Export_RawSignature_ToFile");
 	var secureRandom = new SecureRandom();
@@ -167,32 +188,32 @@ static void Sample_3_Sign_And_Export_RawSignature_ToFile (string _PrKeyFileName,
 	bool result = signer.VerifySignature(hashCode, signature[0], signature[1]);
 	Console.WriteLine($"Key pair match: {result}\nSignature verified: {result}");
 	switch (result)
-    {
+	{
 		case true:
-            {
+			{
 				List<byte> sig = new List<byte>();
 				sig.AddRange(signature[0].ToByteArrayUnsigned());
 				sig.AddRange(signature[1].ToByteArrayUnsigned());
 				File.WriteAllBytes(_RawSigFileName, sig.ToArray());
 				Console.WriteLine("Raw signature exported");
 				break;
-            }
-        default:
-            {
+			}
+		default:
+			{
 				Console.WriteLine("Raw signature not exported");
 				break;
-            }
-    }
+			}
+	}
 }
 
 static void Sample_4_ImportandVerify_RawSignature(string _PbKeyFileName, string _RawSigFileName, string _ToBeSignedFileName)
 {
 	Console.WriteLine("\nSample_4_ImportandVerify_RawSignature");
 	var hashCode = DigestUtilities.CalculateDigest(new DerObjectIdentifier("1.2.643.7.1.1.2.2"), File.ReadAllBytes(_ToBeSignedFileName));
-	var signatureBytes = File.ReadAllBytes(_RawSigFileName);
+	byte[] signatureBytes = File.ReadAllBytes(_RawSigFileName);
 	ECPublicKeyParameters pbk = (ECPublicKeyParameters)ReadPemObject(_PbKeyFileName);
-	Org.BouncyCastle.Math.BigInteger r = new Org.BouncyCastle.Math.BigInteger(signatureBytes[0..32]);
-	Org.BouncyCastle.Math.BigInteger s = new Org.BouncyCastle.Math.BigInteger(signatureBytes[32..64]);
+	Org.BouncyCastle.Math.BigInteger r = new Org.BouncyCastle.Math.BigInteger(signatureBytes.Take(32).ToArray());
+	Org.BouncyCastle.Math.BigInteger s = new Org.BouncyCastle.Math.BigInteger(signatureBytes.Skip(32).Take(32).ToArray());
 	var signer = new ECGost3410Signer();
 	signer.Init(false, (AsymmetricKeyParameter)pbk);
 	var result = signer.VerifySignature(hashCode, r, s);
@@ -200,19 +221,19 @@ static void Sample_4_ImportandVerify_RawSignature(string _PbKeyFileName, string 
 	switch (result)
 	{
 		case true:
-            {
+			{
 				Console.WriteLine("Signature verified OK");
 				break;
-            }
-        default:
-            {
+			}
+		default:
+			{
 				Console.WriteLine("Signature NOT verified");
 				break;
-            }
+			}
 	}
 }
 
-static void Sample_5_GenerateCertRequest (string _PrKeyFileName, string _PbKeyFileName, string _CertRequestFileName)
+static void Sample_5_GenerateCertRequest(string _PrKeyFileName, string _PbKeyFileName, string _CertRequestFileName)
 {
 	Console.WriteLine("\nSample_5_GenerateCertRequest");
 	var secureRandom = new SecureRandom();
@@ -233,20 +254,20 @@ static void Sample_5_GenerateCertRequest (string _PrKeyFileName, string _PbKeyFi
 		(ECPrivateKeyParameters)prk);
 	var result = request.Verify(pbk);
 	switch (result)
-    {
+	{
 		case true:
-            {
+			{
 				Console.WriteLine("Certificate request generated!");
 				WritePemObject(request, _CertRequestFileName);
 				break;
 			}
-        default:
-            {
+		default:
+			{
 				Console.WriteLine("Certificate request NOT generated!");
 				break;
 			}
-    }
-	
+	}
+
 }
 
 static void Sample_6_GenerateSelfSignedCertificate(string _PrKeyFileName, string _PbKeyFileName, string _SelfSignedCertFileName)
@@ -277,31 +298,31 @@ static void Sample_6_GenerateSelfSignedCertificate(string _PrKeyFileName, string
 	var x509 = certGen.Generate(signatureFactory);
 	bool flag;
 	try
-    {
+	{
 		x509.Verify(pbk);
 		flag = true;
 	}
 	catch
-    {
+	{
 		flag = false;
-    }
+	}
 	switch (flag)
-    {
+	{
 		case true:
-            {
+			{
 				WritePemObject(x509, _SelfSignedCertFileName);
 				Console.WriteLine("Self-signed certificate generated");
 				break;
-            }
-        default:
-            {
+			}
+		default:
+			{
 				Console.WriteLine("Self-signed certificate NOT generated");
 				break;
-            }
-    }	
+			}
+	}
 }
 
-static void Sample_7_ExportPfx (string _PrKeyFileName, string _PFXFileName, string _CertFileName, string _PFXPass)
+static void Sample_7_ExportPfx(string _PrKeyFileName, string _PFXFileName, string _CertFileName, string _PFXPass)
 {
 	Console.WriteLine("\nSample_7_ExportPfx");
 	var secureRandom = new SecureRandom();
@@ -326,7 +347,7 @@ static void Sample_8_ImportPfx(string _PFXFileName, string _PFXPass)
 	Console.WriteLine("\nSample_8_ImportPfx");
 	var secureRandom = new SecureRandom();
 	try
-    {
+	{
 		var pfxBytes = File.ReadAllBytes(_PFXFileName);
 		var builder = new Pkcs12StoreBuilder();
 		builder.SetUseDerEncoding(true);
@@ -346,27 +367,27 @@ static void Sample_8_ImportPfx(string _PFXFileName, string _PFXPass)
 		var result = signer.VerifySignature(hashCode, signature[0], signature[1]);
 		Console.WriteLine("PFX key pair match: " + result);
 		switch (result)
-        {
+		{
 			case true:
-                {
+				{
 					Console.WriteLine("PFX imported!");
 					break;
 				}
-            default:
-                {
+			default:
+				{
 					Console.WriteLine("PFX NOT imported!");
 					break;
-                }
-        }
-		
+				}
+		}
+
 	}
 	catch
-    {
+	{
 		Console.WriteLine("PFX NOT imported!");
-    }
+	}
 }
 
-static void Sample_9_SignCertRequest (string _PFXFileName, string _PFXPass, string _CertRequestFileName, string _IssuedCertFileName)
+static void Sample_9_SignCertRequest(string _PFXFileName, string _PFXPass, string _CertRequestFileName, string _IssuedCertFileName)
 {
 	Console.WriteLine("\nSample_9_SignCertRequest");
 	var secureRandom = new SecureRandom();
@@ -374,9 +395,9 @@ static void Sample_9_SignCertRequest (string _PFXFileName, string _PFXPass, stri
 	bool result = reqToBeSigned.Verify();
 	Console.WriteLine($"PKCS#10 verification status: {result}");
 	switch (result)
-    {
+	{
 		case true:
-            {
+			{
 				var pfxBytes = File.ReadAllBytes(_PFXFileName);
 				var builder = new Pkcs12StoreBuilder();
 				builder.SetUseDerEncoding(true);
@@ -400,7 +421,7 @@ static void Sample_9_SignCertRequest (string _PFXFileName, string _PFXPass, stri
 				var nc = nonCritycal.GetEnumerator();
 				var cr = Critycal.GetEnumerator();
 				while (nc.MoveNext())
-                {
+				{
 					var ext = reqExt.GetExtension((DerObjectIdentifier)nc.Current);
 					certGen.AddExtension((DerObjectIdentifier)nc.Current, false, ext.GetParsedValue());
 				}
@@ -437,13 +458,13 @@ static void Sample_9_SignCertRequest (string _PFXFileName, string _PFXPass, stri
 				}
 
 				break;
-            }
+			}
 		default:
-            {
+			{
 				Console.WriteLine("Certificate NOT issued!");
 				break;
-            }
-    }
+			}
+	}
 }
 
 static void Sample_10_Create_Attached_CAdES_BES(string _PFXFileName, string _PFXPass, string _CAdES_BES_SigFileName, string _ToBeSignedFileName)
@@ -547,12 +568,7 @@ static void Sample_11_Verify_Attached_CAdES_BES(string _CAdES_BES_SigFileName)
 	}
 }
 
-static void Sample_12_BuildCertChain()
-{
-	//TODO
-}
-
-static void Sample_13_SignCRL(string _CrlFileName)
+static void Sample_12_SignCRL(string _CrlFileName, string _PFXFileName, string _PFXPass)
 {
 	Console.WriteLine("\nSample_13_SignCRL");
 	var secureRandom = new SecureRandom();
@@ -574,213 +590,156 @@ static void Sample_13_SignCRL(string _CrlFileName)
 	X509Crl crl = CrlGen.Generate(signatureFactory);
 	WritePemObject(crl, _CrlFileName);
 	try
-    {
+	{
 		crl.Verify(certBag.Certificate.GetPublicKey());
 		Console.WriteLine("CRL generated!");
 	}
 	catch
-    {
+	{
 		Console.WriteLine("CRL NOT generated!");
 	}
 }
 
-static void Sample_14_CreateOCSPResponse()
+static void Sample_13_CreateXMLDSig(string _PFXFileName, string _PFXPass, string _XMLDSIG_SigFileName, string _XMLToBeSignedFileName)
 {
-	//TODO
+	Console.WriteLine("\nSample_13_CreateXMLDSig");
+	try
+    {
+		var pfxBytes = File.ReadAllBytes(_PFXFileName);
+		var builder = new Pkcs12StoreBuilder();
+		builder.SetUseDerEncoding(true);
+		var store = builder.Build();
+		var m = new MemoryStream(pfxBytes);
+		store.Load(m, _PFXPass.ToCharArray());
+		m.Close();
+		AsymmetricKeyEntry prkBag = store.GetKey("prk");
+		X509CertificateEntry certBag = store.GetCertificate("cert");
+		XmlDocument document = new XmlDocument();
+		document.PreserveWhitespace = true;
+		document.Load(_XMLToBeSignedFileName);
+
+		var signedXml = new SignedXml(document)
+		{
+			SigningKey = (AsymmetricKeyParameter)prkBag.Key,
+		};
+		var reference = new Reference();
+		reference.Uri = "";
+		reference.AddTransform(new XmlDsigEnvelopedSignatureTransform());
+		reference.DigestMethod = SignedXml.XmlDsigGost3411_2012_256_Url;
+		signedXml.AddReference(reference);
+		signedXml.KeyInfo = new KeyInfo();
+		signedXml.KeyInfo.AddClause(new KeyInfoX509Data(certBag.Certificate));
+		signedXml.SignedInfo.SignatureMethod = SignedXml.XmlDsigGost3410ObsoleteUrl;
+		signedXml.ComputeSignature();
+
+		System.Xml.XmlElement xmlDigitalSignature = signedXml.GetXml();
+		document.DocumentElement.AppendChild(document.ImportNode(xmlDigitalSignature, true));
+		document.Save(_XMLDSIG_SigFileName);
+		Console.WriteLine("XMLDSIG created and exported!");
+	}
+	catch
+    {
+		Console.WriteLine("XMLDSIG NOT created or NOT exported!");
+	}
 }
 
-static void Sample_15_ExportCertsFromCryptoProContainer (string _Header_Key_FileName)
+static void Sample_14_VerifyXMLDSig(string _XMLDSIG_SigFileName)
 {
-	var b = File.ReadAllBytes(_Header_Key_FileName);
-	var m = new MemoryStream(b);
-	var berReader = new BerReader(m);
-	var header_key = berReader.ReadToEnd(true);
-	var potentialCertStore = header_key.ChildNodes[0].ChildNodes[0];
-	List<Org.BouncyCastle.X509.X509Certificate> certStore = new List<Org.BouncyCastle.X509.X509Certificate>();
-	var e = potentialCertStore.ChildNodes.GetEnumerator();
-	while (e.MoveNext())
-    	{
-		var tempCertRawBytes = e.Current.RawValue;
-		try
-        	{
-			Org.BouncyCastle.X509.X509Certificate tempCert = new Org.BouncyCastle.X509.X509Certificate(tempCertRawBytes);
-			certStore.Add(tempCert);
-		}
-		catch
-        	{
-			//TODO
-		}
-    	}
-	switch (certStore.Count > 0)
-    	{
-		case false: {
-				Console.WriteLine("No certs found!");
+	Console.WriteLine("\nSample_14_VerifyXMLDSig");
+	XmlDocument document = new XmlDocument();
+	document.PreserveWhitespace = true;
+	document.Load(_XMLDSIG_SigFileName);
+
+	SignedXml signedXml = new SignedXml(document);
+	var signatureNode = (XmlElement)document.GetElementsByTagName("Signature")[0];
+	signedXml.LoadXml(signatureNode);
+	var result = signedXml.CheckSignature();
+	switch (result)
+    {
+		case true:
+            {
+				Console.WriteLine("XMLDSIG verified!");
 				break;
-            	}
-    	}
-}
-
-static void Sample_16_VerifyPAdESUsingOldITextSharpAPI (string _PdfFileName) 
-{
-	if (args.Length < 1)
-            {
-                Console.WriteLine("Pdf.Verify <document>");
-                
             }
-            string document = _PdfFileName;
-
-            PdfReader reader = new PdfReader(document);
-
-            AcroFields af = reader.AcroFields;
-            List<string> names = af.GetSignatureNames();
-            foreach (string name in names)
-            {
-                string message = "Signature name: " + name;
-                message += "\nSignature covers whole document: " + af.SignatureCoversWholeDocument(name);
-                message += "\nDocument revision: " + af.GetRevision(name) + " of " + af.TotalRevisions;
-
-                PdfDictionary singleSignature = af.GetSignatureDictionary(name);
-                PdfString asString1 = singleSignature.GetAsString(PdfName.CONTENTS);
-                byte[] signatureBytes = asString1.GetOriginalBytes();
-
-                RandomAccessFileOrArray safeFile = reader.SafeFile;
-
-                PdfArray asArray = singleSignature.GetAsArray(PdfName.BYTERANGE);
-                using (
-                    Stream stream =
-                        (Stream)
-                        new RASInputStream(
-                            new RandomAccessSourceFactory().CreateRanged(
-                                safeFile.CreateSourceView(),
-                                (IList<long>)asArray.AsLongArray())))
-                {
-                    using (MemoryStream ms = new MemoryStream((int)stream.Length))
-                    {
-                        stream.CopyTo(ms);
-                        byte[] data = ms.GetBuffer();
-
-                        var ContentInfo = new CmsProcessableByteArray(data);
-                        var CmsSignedData = new CmsSignedData(ContentInfo, signatureBytes);
-
-
-                        var certStoreInSig = CmsSignedData.GetCertificates("collection");
-                        var sgnrs = CmsSignedData.GetSignerInfos().GetSigners();
-                        var e = sgnrs.GetEnumerator();
-                        while (e.MoveNext())
-                        {
-                            var sgnr = (SignerInformation)e.Current;
-                            var certs = certStoreInSig.GetMatches(sgnr.SignerID);
-                            var ee = certs.GetEnumerator();
-                            while (ee.MoveNext())
-                            {
-                                var cert = (Org.BouncyCastle.X509.X509Certificate)ee.Current;
-                                bool reslt = sgnr.Verify(cert);
-                                Console.WriteLine($"PAdES verification status: {reslt}");
-                                var encodedSignedAttributes = sgnr.GetEncodedSignedAttributes();
-                                var sig = sgnr.GetSignature();
-                                var publicKey = (ECPublicKeyParameters)cert.GetPublicKey();
-                                var publicKeyParams = (ECGost3410Parameters)publicKey.Parameters;
-                                var encodedSignedAttributesHash = DigestUtilities.CalculateDigest(publicKeyParams.DigestParamSet.Id, (byte[])ContentInfo.GetContent());
-                                var r = new Org.BouncyCastle.Math.BigInteger(1, sig, 32, 32);
-                                var s = new Org.BouncyCastle.Math.BigInteger(1, sig, 0, 32);
-                                var gostVerifier = new ECGost3410Signer();
-                                gostVerifier.Init(false, publicKey);
-                                Console.WriteLine($"Manual PAdES verification status: {gostVerifier.VerifySignature(encodedSignedAttributesHash, r, s)}");
-                            }
-                        }
-                        Console.ReadKey();
-                    }
-                }
+		default: 
+			{
+				Console.WriteLine("XMLDSIG NOT verified!");
+				break;
             }
+    }
 }
 
-static void Sample_17_VerifyUsingNewITextSharpAPI(string _fileName) 
+static void Sample_15_CreatePAdES(string _PFXFileName, string _PFXPass, string _PAdES_SigFileName, string _PDFToBeSignedFileName) 
 {
-	Console.WriteLine($"Verify {_fileName} using new ITextSharp interface");
-	iText.Kernel.Pdf.PdfReader reader = new iText.Kernel.Pdf.PdfReader(_fileName);
-        iText.Kernel.Pdf.PdfDocument doc = new iText.Kernel.Pdf.PdfDocument(reader);
-        SignatureUtil util = new SignatureUtil(doc);
-        try
-        {
-        	iText.Signatures.PdfPKCS7 sig = util.ReadSignatureData("Signature1");
-                if (sig != null)
-                {
-                    var flag = sig.VerifySignatureIntegrityAndAuthenticity();
-                    Console.WriteLine($"Signature verification status: {flag}");
-                }
-         }
-         catch
-         {
+	try
+    {
+		Console.WriteLine("\nSample_15_CreatePAdES");
+		var pfxBytes = File.ReadAllBytes(_PFXFileName);
+		var builder = new Pkcs12StoreBuilder();
+		builder.SetUseDerEncoding(false);
+		var store = builder.Build();
+		var m = new MemoryStream(pfxBytes);
+		store.Load(m, _PFXPass.ToCharArray());
+		m.Close();
+		AsymmetricKeyEntry prkBag = store.GetKey("prk");
+		X509CertificateEntry certBag = store.GetCertificate("cert");
+		var publicKey = (ECPublicKeyParameters)certBag.Certificate.GetPublicKey();
+		var publickeyparams = (ECGost3410Parameters)publicKey.Parameters;
 
-         }
+		PdfReader reader = new PdfReader(_PDFToBeSignedFileName);
+		PdfWriter writer = new PdfWriter(new FileStream($"{_PDFToBeSignedFileName}.temp", FileMode.Create, FileAccess.ReadWrite), new WriterProperties().SetFullCompressionMode(false)); //решаем проблему со сжатием при наличии в файле Cross-Reference Streams
+		PdfDocument toBeSaved = new PdfDocument(reader, writer);
+		toBeSaved.Close();
+		writer.Close();
+		reader.Close();
+		reader = new PdfReader($"{_PDFToBeSignedFileName}.temp");
+		PdfDocument p = new PdfDocument(reader);
+		reader = new PdfReader($"{_PDFToBeSignedFileName}.temp");
+		PdfDocumentContentParser pcp = new iText.Kernel.Pdf.Canvas.Parser.PdfDocumentContentParser(p);
+		TextMarginFinder finder = pcp.ProcessContent(p.GetNumberOfPages(), new iText.Kernel.Pdf.Canvas.Parser.Listener.TextMarginFinder());
+		Rectangle datarec = finder.GetTextRectangle();
+		PdfSigner signer = new PdfSigner(reader, new FileStream($"{_PAdES_SigFileName}", FileMode.OpenOrCreate, FileAccess.ReadWrite), new StampingProperties().UseAppendMode());
+		signer.SetFieldName("Signature1");
+		Rectangle sigrec = new Rectangle(datarec.GetX() + datarec.GetWidth() / 2, datarec.GetY() - 100, 200, 100);
+		PdfSignatureAppearance appearance = signer.GetSignatureAppearance()
+		.SetReason("A")
+		.SetLocation("B")
+		.SetReuseAppearance(false)
+		.SetPageRect(sigrec)
+		.SetPageNumber(p.GetNumberOfPages())
+		.SetCertificate(certBag.Certificate);
+		appearance.SetLayer2Font(iText.Kernel.Font.PdfFontFactory.CreateFont(iText.IO.Font.Constants.StandardFonts.TIMES_ROMAN));
+		iText.Signatures.IExternalSignature pks = new iText.Signatures.PrivateKeySignature(prkBag.Key, publickeyparams.DigestParamSet.Id);
+		signer.SignDetached(pks, new X509Certificate[] { certBag.Certificate }, null, null, null, 0, PdfSigner.CryptoStandard.CADES);
+		Console.WriteLine("PDF is signed!");
+		p.Close();
+		reader.Close();
+	}
+	catch
+    {
+		Console.WriteLine("PDF is NOT signed!");
+	}
 }
 
-static void Sample_18_SignUsingNewITextSharpAPI(string _fileName, string _pfxFileName, string _pfxPass) 
+static void Sample_16_VerifyPAdES(string _PAdES_SigFileName)
 {
-	var pfxBytes = File.ReadAllBytes(_pfxPath);
-        var builder = new Pkcs12StoreBuilder();
-        builder.SetUseDerEncoding(false);
-        var store = builder.Build();
-        var m = new MemoryStream(pfxBytes);
-        store.Load(m, _pfxPass.ToCharArray());
-        m.Close();
-        AsymmetricKeyEntry prkBag = store.GetKey("prk");
-        X509CertificateEntry certBag = store.GetCertificate("cert");
-        var publicKey = (ECPublicKeyParameters)certBag.Certificate.GetPublicKey();
-        var publickeyparams = (ECGost3410Parameters)publicKey.Parameters;
-
-	PdfReader reader = new PdfReader(PdfFileName);
-	PdfDocument p = new PdfDocument(reader);
-	reader = new PdfReader(PdfFileName);
-	PdfWriter writer = new PdfWriter(new FileStream($"{PdfFileName}.temp", FileMode.Create, FileAccess.ReadWrite), new WriterProperties().SetFullCompressionMode(false)); //решаем проблему со сжатием при наличии в файле Cross-Reference Streams
-	PdfDocument toBeSaved = new PdfDocument(reader, writer);
-	toBeSaved.Close();
-	writer.Close();
-	reader.Close();
-	reader = new PdfReader($"{PdfFileName}.temp");
-	PdfDocumentContentParser pcp = new iText.Kernel.Pdf.Canvas.Parser.PdfDocumentContentParser(p);
-	TextMarginFinder finder = pcp.ProcessContent(p.GetNumberOfPages(), new iText.Kernel.Pdf.Canvas.Parser.Listener.TextMarginFinder());
-	Rectangle datarec = finder.GetTextRectangle();
-	PdfSigner signer = new PdfSigner(reader, new FileStream($"{PdfFileName}.signed.pdf", FileMode.OpenOrCreate, FileAccess.ReadWrite), new StampingProperties().UseAppendMode());
-	signer.SetFieldName("Signature1");
-	Rectangle sigrec = new Rectangle(datarec.GetX() + datarec.GetWidth() / 2, datarec.GetY() - 100, 200, 100);
-	PdfSignatureAppearance appearance = signer.GetSignatureAppearance()
-	.SetReason("A")
-	.SetLocation("B")
-	.SetReuseAppearance(false)
-	.SetPageRect(sigrec)
-	.SetPageNumber(p.GetNumberOfPages())
-	.SetCertificate(certBag.Certificate);
-	appearance.SetLayer2Font(iText.Kernel.Font.PdfFontFactory.CreateFont(iText.IO.Font.Constants.StandardFonts.TIMES_ROMAN));
-        iText.Signatures.IExternalSignature pks = new iText.Signatures.PrivateKeySignature(prkBag.Key, publickeyparams.DigestParamSet.Id);
-        signer.SignDetached(pks, new X509Certificate[] { certBag.Certificate }, null, null, null, 0, PdfSigner.CryptoStandard.CADES);
-}
-
-Sample_19_CreateXMLDSig () 
-{
-	string ExampleXml = @"<?xml version=""1.0""?>
-	<example>
-	<test>some text node</test>
-	</example>";
-	System.Xml.XmlDocument doc = new System.Xml.XmlDocument();
-	doc.LoadXml(ExampleXml);
-	var signedXml = new SignedXml(doc)
+	Console.WriteLine("\nSample_16_VerifyPAdES");
+	iText.Kernel.Pdf.PdfReader reader = new iText.Kernel.Pdf.PdfReader(_PAdES_SigFileName);
+	iText.Kernel.Pdf.PdfDocument doc = new iText.Kernel.Pdf.PdfDocument(reader);
+	SignatureUtil util = new SignatureUtil(doc);
+	try
 	{
-    	SigningKey = keyPair.Private,
-	};
-	var reference = new Reference();
-	reference.Uri = "";
-	reference.AddTransform(new XmlDsigEnvelopedSignatureTransform());
-	reference.DigestMethod = SignedXml.XmlDsigGost3411_2012_256_Url;
-	signedXml.AddReference(reference);
-	signedXml.KeyInfo = new KeyInfo();
-	signedXml.KeyInfo.AddClause(new KeyInfoX509Data(x509));
-	signedXml.SignedInfo.SignatureMethod = SignedXml.XmlDsigGost3410ObsoleteUrl;
-	signedXml.ComputeSignature();
-
-	System.Xml.XmlElement xmlDigitalSignature = signedXml.GetXml();
-	doc.DocumentElement.AppendChild(doc.ImportNode(xmlDigitalSignature, true));
-	doc.Save("1.signed.xml");
+		iText.Signatures.PdfPKCS7 sig = util.ReadSignatureData("Signature1");
+		if (sig != null)
+		{
+			var flag = sig.VerifySignatureIntegrityAndAuthenticity();
+			Console.WriteLine($"Signature verification status: {flag}");
+		}
+	}
+	catch
+	{
+		Console.WriteLine("Signature NOT verified!");
+	}
 }
 
 static void WritePemObject(Object _object, String _fileName)
