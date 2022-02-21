@@ -604,7 +604,7 @@ static void Sample_13_CreateXMLDSig(string _PFXFileName, string _PFXPass, string
 {
 	Console.WriteLine("\nSample_13_CreateXMLDSig");
 	try
-    {
+        {
 		var pfxBytes = File.ReadAllBytes(_PFXFileName);
 		var builder = new Pkcs12StoreBuilder();
 		builder.SetUseDerEncoding(true);
@@ -629,7 +629,7 @@ static void Sample_13_CreateXMLDSig(string _PFXFileName, string _PFXPass, string
 		signedXml.AddReference(reference);
 		signedXml.KeyInfo = new KeyInfo();
 		signedXml.KeyInfo.AddClause(new KeyInfoX509Data(certBag.Certificate));
-		signedXml.SignedInfo.SignatureMethod = SignedXml.XmlDsigGost3410ObsoleteUrl;
+		signedXml.SignedInfo.SignatureMethod = SignedXml.XmlDsigGost3410_2012_256_Url;
 		signedXml.ComputeSignature();
 
 		System.Xml.XmlElement xmlDigitalSignature = signedXml.GetXml();
@@ -638,7 +638,7 @@ static void Sample_13_CreateXMLDSig(string _PFXFileName, string _PFXPass, string
 		Console.WriteLine("XMLDSIG created and exported!");
 	}
 	catch
-    {
+        {
 		Console.WriteLine("XMLDSIG NOT created or NOT exported!");
 	}
 }
@@ -655,24 +655,24 @@ static void Sample_14_VerifyXMLDSig(string _XMLDSIG_SigFileName)
 	signedXml.LoadXml(signatureNode);
 	var result = signedXml.CheckSignature();
 	switch (result)
-    {
+    	{
 		case true:
-            {
-				Console.WriteLine("XMLDSIG verified!");
-				break;
-            }
+            	{
+			Console.WriteLine("XMLDSIG verified!");
+			break;
+            	}
 		default: 
-			{
-				Console.WriteLine("XMLDSIG NOT verified!");
-				break;
-            }
-    }
+		{
+			Console.WriteLine("XMLDSIG NOT verified!");
+			break;
+            	}
+    	}
 }
 
 static void Sample_15_CreatePAdES(string _PFXFileName, string _PFXPass, string _PAdES_SigFileName, string _PDFToBeSignedFileName) 
 {
 	try
-    {
+    	{
 		Console.WriteLine("\nSample_15_CreatePAdES");
 		var pfxBytes = File.ReadAllBytes(_PFXFileName);
 		var builder = new Pkcs12StoreBuilder();
@@ -716,7 +716,7 @@ static void Sample_15_CreatePAdES(string _PFXFileName, string _PFXPass, string _
 		reader.Close();
 	}
 	catch
-    {
+    	{
 		Console.WriteLine("PDF is NOT signed!");
 	}
 }
