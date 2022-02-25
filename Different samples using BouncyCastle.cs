@@ -9,6 +9,10 @@ using iText.Kernel.Pdf.Canvas.Parser.Listener;
 using iText.Kernel.Pdf.Xobject;
 using iText.Kernel.Font;
 using iText.Layout.Element;
+using iText.Layout.Borders;
+using iText.Kernel.Colors;
+using iText.Layout.Properties;
+using iText.IO.Image;
 
 //.Net Framework 4.8
 using System.Text;
@@ -87,22 +91,25 @@ var PAdES_SigFileName = "PDFtoBeSigned_PAdES.signed.pdf";
 //For export certs from cpro key container
 var Header_Key_FileName = "header.key";
 
-//Sample_1_Generate_Gost3410_2012_KeyPair(PrKeyFileName, PbKeyFileName, ToBeSigned);
-//Sample_2_Read_Gost3410_2012_KeyPair_FromFile(PrKeyFileName, PbKeyFileName, ToBeSigned);
-//Sample_3_Sign_And_Export_RawSignature_ToFile(PrKeyFileName, PbKeyFileName, RawSigFileName, ToBeSignedFileName);
-//Sample_4_ImportandVerify_RawSignature(PbKeyFileName, RawSigFileName, ToBeSignedFileName);
-//Sample_5_GenerateCertRequest(PrKeyFileName, PbKeyFileName, CertRequestFileName);
-//Sample_6_GenerateSelfSignedCertificate(PrKeyFileName, PbKeyFileName, SelfSignedCertFileName);
-//Sample_7_ExportPfx(PrKeyFileName, PFXFileName, SelfSignedCertFileName, PFXPass);
-//Sample_8_ImportPfx(PFXFileName, PFXPass);
-//Sample_9_SignCertRequest(PFXFileName, PFXPass, CertRequestFileName, IssuedCertFileName);
-//Sample_10_Create_Attached_CAdES_BES(PFXFileName, PFXPass, CAdESBES_SigFileName, ToBeSignedFileName);
-//Sample_11_Verify_Attached_CAdES_BES(CAdESBES_SigFileName);
-//Sample_12_SignCRL(CrlFileName, PFXFileName, PFXPass);
-//Sample_13_CreateXMLDSig(PFXFileName, PFXPass, XMLDSIG_SigFileName, XMLToBeSignedFileName);
-//Sample_14_VerifyXMLDSig(XMLDSIG_SigFileName);
+Sample_1_Generate_Gost3410_2012_KeyPair(PrKeyFileName, PbKeyFileName, ToBeSigned);
+Sample_2_Read_Gost3410_2012_KeyPair_FromFile(PrKeyFileName, PbKeyFileName, ToBeSigned);
+Sample_3_Sign_And_Export_RawSignature_ToFile(PrKeyFileName, PbKeyFileName, RawSigFileName, ToBeSignedFileName);
+Sample_4_ImportandVerify_RawSignature(PbKeyFileName, RawSigFileName, ToBeSignedFileName);
+Sample_5_GenerateCertRequest(PrKeyFileName, PbKeyFileName, CertRequestFileName);
+Sample_6_GenerateSelfSignedCertificate(PrKeyFileName, PbKeyFileName, SelfSignedCertFileName);
+Sample_7_ExportPfx(PrKeyFileName, PFXFileName, SelfSignedCertFileName, PFXPass);
+Sample_8_ImportPfx(PFXFileName, PFXPass);
+Sample_9_SignCertRequest(PFXFileName, PFXPass, CertRequestFileName, IssuedCertFileName);
+Sample_10_Create_Attached_CAdES_BES(PFXFileName, PFXPass, CAdESBES_SigFileName, ToBeSignedFileName);
+Sample_11_Verify_Attached_CAdES_BES(CAdESBES_SigFileName);
+Sample_12_SignCRL(CrlFileName, PFXFileName, PFXPass);
+Sample_13_CreateXMLDSig(PFXFileName, PFXPass, XMLDSIG_SigFileName, XMLToBeSignedFileName);
+Sample_14_VerifyXMLDSig(XMLDSIG_SigFileName);
+Sample_15_CreatePAdES_usingTables(PFXFileName, PFXPass, "Tables.pdf", PDFToBeSignedFileName);
+System.Threading.Thread.Sleep(1000);
 Sample_15_CreatePAdES(PFXFileName, PFXPass, PAdES_SigFileName, PDFToBeSignedFileName);
-//Sample_16_VerifyPAdES(PAdES_SigFileName);
+Sample_16_VerifyPAdES(PAdES_SigFileName);
+Sample_16_VerifyPAdES("Tables.pdf");
 
 static void Sample_1_Generate_Gost3410_2012_KeyPair(string _PrKeyFileName, string _PbKeyFileName, string _ToBeSigned)
 {
@@ -253,7 +260,7 @@ static void Sample_5_GenerateCertRequest(string _PrKeyFileName, string _PbKeyFil
 	AttributePkcs attributePkcs = new AttributePkcs(PkcsObjectIdentifiers.Pkcs9AtExtensionRequest, new DerSet(extGen.Generate()));
 	var request = new Pkcs10CertificationRequest(
 		"1.2.643.7.1.1.3.2",
-		new X509Name("CN=Anatolka, L=Moscow"),
+		new X509Name("CN=Месенгисер Якоб, L=Москва"),
 		(ECPublicKeyParameters)pbk,
 		new DerSet(attributePkcs),
 		(ECPrivateKeyParameters)prk);
@@ -285,11 +292,11 @@ static void Sample_6_GenerateSelfSignedCertificate(string _PrKeyFileName, string
 	Org.BouncyCastle.Math.BigInteger serial = new Org.BouncyCastle.Math.BigInteger(160, secureRandom);
 	var certGen = new X509V3CertificateGenerator();
 	certGen.SetSerialNumber(serial);
-	certGen.SetIssuerDN(new X509Name("CN=Anatolka"));
+	certGen.SetIssuerDN(new X509Name("CN=Месенгисер Якоб"));
 	certGen.SetNotBefore(DateTime.UtcNow);
 	certGen.SetNotAfter(DateTime.UtcNow.AddYears(1));
 	certGen.SetPublicKey(pbk);
-	certGen.SetSubjectDN(new X509Name("CN=Anatolka"));
+	certGen.SetSubjectDN(new X509Name("CN=Месенгисер Якоб"));
 
 	var subjectPbkInfo = new SubjectPublicKeyInfo(new AlgorithmIdentifier("1.2.643.7.1.2.1.1.1"), pbk.Q.GetEncoded());
 	var subjectKeyID = new SubjectKeyIdentifier(subjectPbkInfo);
@@ -609,7 +616,7 @@ static void Sample_13_CreateXMLDSig(string _PFXFileName, string _PFXPass, string
 {
 	Console.WriteLine("\nSample_13_CreateXMLDSig");
 	try
-    {
+	{
 		var pfxBytes = File.ReadAllBytes(_PFXFileName);
 		var builder = new Pkcs12StoreBuilder();
 		builder.SetUseDerEncoding(true);
@@ -643,7 +650,7 @@ static void Sample_13_CreateXMLDSig(string _PFXFileName, string _PFXPass, string
 		Console.WriteLine("XMLDSIG created and exported!");
 	}
 	catch
-    {
+	{
 		Console.WriteLine("XMLDSIG NOT created or NOT exported!");
 	}
 }
@@ -660,24 +667,24 @@ static void Sample_14_VerifyXMLDSig(string _XMLDSIG_SigFileName)
 	signedXml.LoadXml(signatureNode);
 	var result = signedXml.CheckSignature();
 	switch (result)
-    {
+	{
 		case true:
-            {
+			{
 				Console.WriteLine("XMLDSIG verified!");
 				break;
-            }
-		default: 
+			}
+		default:
 			{
 				Console.WriteLine("XMLDSIG NOT verified!");
 				break;
-            }
-    }
+			}
+	}
 }
 
-static void Sample_15_CreatePAdES(string _PFXFileName, string _PFXPass, string _PAdES_SigFileName, string _PDFToBeSignedFileName) 
+static void Sample_15_CreatePAdES(string _PFXFileName, string _PFXPass, string _PAdES_SigFileName, string _PDFToBeSignedFileName)
 {
 	try
-    {
+	{
 		Console.WriteLine("\nSample_15_CreatePAdES");
 		var pfxBytes = File.ReadAllBytes(_PFXFileName);
 		var Pkcs12StoreBuilder = new Pkcs12StoreBuilder();
@@ -698,7 +705,7 @@ static void Sample_15_CreatePAdES(string _PFXFileName, string _PFXPass, string _
 		reader.Close();
 		reader = new PdfReader($"{_PDFToBeSignedFileName}.temp");
 		PdfDocument p = new PdfDocument(reader);
-		p.GetDocumentInfo().SetAuthor("Анатолий Колкочев");
+		p.GetDocumentInfo().SetAuthor("Месенгисер Якоб");
 		reader = new PdfReader($"{_PDFToBeSignedFileName}.temp");
 		PdfDocumentContentParser pcp = new iText.Kernel.Pdf.Canvas.Parser.PdfDocumentContentParser(p);
 		TextMarginFinder finder = pcp.ProcessContent(p.GetNumberOfPages(), new iText.Kernel.Pdf.Canvas.Parser.Listener.TextMarginFinder());
@@ -717,11 +724,11 @@ static void Sample_15_CreatePAdES(string _PFXFileName, string _PFXPass, string _
 				);
 		}
 		else if (datarec.GetWidth() == width)
-        {
+		{
 			sigrec = new Rectangle(datarec.GetX(), datarec.GetY() - height - 30, width, height);
 		}
 		else if (datarec.GetWidth() > width)
-        {
+		{
 			sigrec = new Rectangle(
 				datarec.GetX() + ((datarec.GetWidth() - width) / 2),
 				datarec.GetY() - height - 30, width, height
@@ -735,14 +742,14 @@ static void Sample_15_CreatePAdES(string _PFXFileName, string _PFXPass, string _
 		.SetPageNumber(p.GetNumberOfPages())
 		.SetCertificate(certBag.Certificate)
 		.SetLayer2Text("");
-        PdfFont font = PdfFontFactory.CreateFont(@"C:\Windows\Fonts\times.ttf", "cp1251", iText.Kernel.Font.PdfFontFactory.EmbeddingStrategy.PREFER_EMBEDDED, true);
-        PdfCanvas pdfCanvas0 = new PdfCanvas(appearance.GetLayer2(), ppp)
-            .SetStrokeColor(iText.Kernel.Colors.ColorConstants.BLUE)
-            .RoundRectangle(0, 0, sigrec!.GetWidth(), sigrec.GetHeight(), 10)
+		PdfFont font = PdfFontFactory.CreateFont(@"C:\Windows\Fonts\times.ttf", "cp1251", iText.Kernel.Font.PdfFontFactory.EmbeddingStrategy.PREFER_EMBEDDED, true);
+		PdfCanvas pdfCanvas0 = new PdfCanvas(appearance.GetLayer2(), ppp)
+			.SetStrokeColor(iText.Kernel.Colors.ColorConstants.BLUE)
+			.RoundRectangle(0, 0, sigrec!.GetWidth(), sigrec.GetHeight(), 10)
 			.Stroke();
-        Canvas canvas = new Canvas(appearance.GetLayer2(), signer.GetDocument());
-        StringBuilder builder = new StringBuilder();
-        builder.AppendLine("ДОКУМЕНТ ПОДПИСАН\nЭЛЕКТРОННОЙ ПОДПИСЬЮ");
+		Canvas canvas = new Canvas(appearance.GetLayer2(), signer.GetDocument());
+		StringBuilder builder = new StringBuilder();
+		builder.AppendLine("ДОКУМЕНТ ПОДПИСАН\nЭЛЕКТРОННОЙ ПОДПИСЬЮ");
 		Paragraph paragraph1 = new Paragraph(builder.ToString())
 			.SetFont(font)
 			.SetFontSize(10)
@@ -766,20 +773,142 @@ static void Sample_15_CreatePAdES(string _PFXFileName, string _PFXPass, string _
 			.Add(paragraph1)
 			.Add(paragraph2)
 			);
-        builder.Clear();
-        builder.AppendLine($"Сертификат: {BitConverter.ToString(certBag.Certificate.SerialNumber.ToByteArray()).Replace("-", "").ToLower()}");
-        builder.AppendLine($"Владелец: {certBag.Certificate.SubjectDN.GetValueList(new DerObjectIdentifier("2.5.4.3"))[0]}");
-        builder.AppendLine($"Действителен с {certBag.Certificate.NotBefore.Date.ToString("d")} по {certBag.Certificate.NotAfter.Date.ToString("d")}");
+		builder.Clear();
+		builder.AppendLine($"Сертификат: {BitConverter.ToString(certBag.Certificate.SerialNumber.ToByteArray()).Replace("-", "").ToLower()}");
+		builder.AppendLine($"Владелец: {certBag.Certificate.SubjectDN.GetValueList(new DerObjectIdentifier("2.5.4.3"))[0]}");
+		builder.AppendLine($"Действителен с {certBag.Certificate.NotBefore.Date.ToString("d")} по {certBag.Certificate.NotAfter.Date.ToString("d")}");
 		canvas.Close();
-        iText.Signatures.IExternalSignature pks = new iText.Signatures.PrivateKeySignature(prkBag.Key, publickeyparams.DigestParamSet.Id);
+		iText.Signatures.IExternalSignature pks = new iText.Signatures.PrivateKeySignature(prkBag.Key, publickeyparams.DigestParamSet.Id);
 		signer.SignDetached(pks, new X509Certificate[] { certBag.Certificate }, null, null, null, 0, PdfSigner.CryptoStandard.CADES);
 		Console.WriteLine("PDF is signed!");
 		signer.GetDocument().Close();
 		ppp.Close();
 		reader.Close();
+		writer.Close();
 	}
 	catch
-    {
+	{
+		Console.WriteLine("PDF is NOT signed!");
+	}
+}
+
+static void Sample_15_CreatePAdES_usingTables(string _PFXFileName, string _PFXPass, string _PAdES_SigFileName, string _PDFToBeSignedFileName)
+{
+	try
+	{
+		Console.WriteLine("\nSample_15_CreatePAdES_usingTables");
+		var pfxBytes = File.ReadAllBytes(_PFXFileName);
+		var Pkcs12StoreBuilder = new Pkcs12StoreBuilder();
+		Pkcs12StoreBuilder.SetUseDerEncoding(false);
+		var store = Pkcs12StoreBuilder.Build();
+		var m = new MemoryStream(pfxBytes);
+		store.Load(m, _PFXPass.ToCharArray());
+		m.Close();
+		AsymmetricKeyEntry prkBag = store.GetKey("prk");
+		X509CertificateEntry certBag = store.GetCertificate("cert");
+		var publicKey = (ECPublicKeyParameters)certBag.Certificate.GetPublicKey();
+		var publickeyparams = (ECGost3410Parameters)publicKey.Parameters;
+		PdfReader reader = new PdfReader(_PDFToBeSignedFileName);
+		PdfWriter writer = new PdfWriter(new FileStream($"{_PDFToBeSignedFileName}.temp", FileMode.Create, FileAccess.ReadWrite), new WriterProperties().SetFullCompressionMode(false)); //решаем проблему со сжатием при наличии в файле Cross-Reference Streams
+		PdfDocument toBeSaved = new PdfDocument(reader, writer);
+		toBeSaved.Close();
+		writer.Close();
+		reader.Close();
+		reader = new PdfReader($"{_PDFToBeSignedFileName}.temp");
+		PdfSigner signer = new PdfSigner(reader, new FileStream($"{_PAdES_SigFileName}", FileMode.Create, FileAccess.ReadWrite), new StampingProperties().UseAppendMode());
+		signer.GetDocument().GetDocumentInfo().SetAuthor("Месенгисер Якоб");
+		PdfDocumentContentParser pcp = new iText.Kernel.Pdf.Canvas.Parser.PdfDocumentContentParser(signer.GetDocument());
+		TextMarginFinder finder = pcp.ProcessContent(signer.GetDocument().GetNumberOfPages(), new iText.Kernel.Pdf.Canvas.Parser.Listener.TextMarginFinder());
+		Rectangle datarec = finder.GetTextRectangle();
+		signer.SetFieldName("Signature1");
+		float width = 201f;
+		float height = 80f;
+		Rectangle sigrec = null;
+		if (datarec.GetWidth() < width)
+		{
+			sigrec = new Rectangle(
+				datarec.GetX() - ((width - datarec.GetWidth()) / 2),
+				datarec.GetY() - height - 30, width, height
+				);
+		}
+		else if (datarec.GetWidth() == width)
+		{
+			sigrec = new Rectangle(datarec.GetX(), datarec.GetY() - height - 30, width, height);
+		}
+		else if (datarec.GetWidth() > width)
+		{
+			sigrec = new Rectangle(
+				datarec.GetX() + ((datarec.GetWidth() - width) / 2),
+				datarec.GetY() - height - 30, width, height
+				);
+		}
+		PdfSignatureAppearance appearance = signer.GetSignatureAppearance()
+		.SetReason("A")
+		.SetLocation("B")
+		.SetReuseAppearance(false)
+		.SetPageRect(sigrec)
+		.SetPageNumber(signer.GetDocument().GetNumberOfPages())
+		.SetCertificate(certBag.Certificate)
+		.SetLayer2Text("");
+		PdfFont font = PdfFontFactory.CreateFont(@"C:\Windows\Fonts\times.ttf", "cp1251", iText.Kernel.Font.PdfFontFactory.EmbeddingStrategy.PREFER_EMBEDDED, true);
+		Table table = new Table(2).SetWidth(width).SetHeight(height).SetFixedLayout().SetFixedPosition(sigrec!.GetX(), datarec.GetY() - height - 30f, width).SetMargin(0).SetPadding(0);
+		Cell LogoCell = new Cell().SetBorder(Border.NO_BORDER);
+		LogoCell.SetWidth(50f).SetHeight(40f).SetVerticalAlignment(iText.Layout.Properties.VerticalAlignment.MIDDLE).SetHorizontalAlignment(HorizontalAlignment.CENTER);
+		LogoCell.Add(
+			new Image(ImageDataFactory.Create("1.jpg")).SetAutoScale(true).SetHorizontalAlignment(HorizontalAlignment.RIGHT)
+			).SetPadding(0);
+
+		Cell IsSigned = new Cell().SetBorder(Border.NO_BORDER);
+		IsSigned.SetWidth(width-50f).SetHeight(40f).SetVerticalAlignment(iText.Layout.Properties.VerticalAlignment.MIDDLE);
+		IsSigned.Add(
+			new Paragraph("документ подписан\nэлектронной подписью".ToUpper())
+				.SetFontColor(ColorConstants.BLUE)
+				.SetFontSize(7f)
+				.SetTextAlignment(iText.Layout.Properties.TextAlignment.CENTER)
+				.SetFont(font).SetMarginRight(40)
+			);
+		Cell CertCell = new Cell(1, 2).SetBorder(Border.NO_BORDER);
+		CertCell.SetHeight(40f).SetVerticalAlignment(iText.Layout.Properties.VerticalAlignment.MIDDLE);
+		CertCell.Add(
+			new Paragraph("Сертификат: " + $"{BitConverter.ToString(certBag.Certificate.SerialNumber.ToByteArray()).Replace("-", "").ToLower()}".ToLower())
+				.SetFontColor(ColorConstants.BLUE)
+				.SetFontSize(7f)
+				.SetTextAlignment(iText.Layout.Properties.TextAlignment.LEFT)
+				.SetFont(font).SetPadding(0)
+			);
+		CertCell.Add(
+			new Paragraph($"Владелец: {certBag.Certificate.SubjectDN.GetValueList(new DerObjectIdentifier("2.5.4.3"))[0]}")
+				.SetFontColor(ColorConstants.BLUE)
+				.SetFontSize(7f)
+				.SetTextAlignment(iText.Layout.Properties.TextAlignment.LEFT)
+				.SetFont(font).SetPadding(0)
+			);
+		CertCell.Add(
+			new Paragraph($"Действителен с {certBag.Certificate.NotBefore.Date.ToString("d")} по {certBag.Certificate.NotAfter.Date.ToString("d")}")
+				.SetFontColor(ColorConstants.BLUE)
+				.SetFontSize(7f)
+				.SetTextAlignment(iText.Layout.Properties.TextAlignment.LEFT)
+				.SetFont(font).SetPadding(0)
+			);
+		table.AddCell(LogoCell);
+		table.AddCell(IsSigned);
+		table.AddFooterCell(CertCell);
+		Document doc = new Document(signer.GetDocument());
+		PdfCanvas pdfCanvas0 = new PdfCanvas(appearance.GetLayer2(), signer.GetDocument())
+			.SetFontAndSize(font, 34f)
+			.SetLineWidth(2)
+			.SetStrokeColor(iText.Kernel.Colors.ColorConstants.BLUE).SetFillColor(ColorConstants.WHITE)
+			.RoundRectangle(0, 0, sigrec!.GetWidth(), sigrec.GetHeight(), 8)
+			.Stroke();
+		doc.Add(table);
+		iText.Signatures.IExternalSignature pks = new iText.Signatures.PrivateKeySignature(prkBag.Key, publickeyparams.DigestParamSet.Id);
+		signer.SignDetached(pks, new X509Certificate[] { certBag.Certificate }, null, null, null, 0, PdfSigner.CryptoStandard.CADES);
+		Console.WriteLine("PDF is signed!");
+		reader.Close();
+		writer.Close();
+	}
+	catch
+	{
 		Console.WriteLine("PDF is NOT signed!");
 	}
 }
