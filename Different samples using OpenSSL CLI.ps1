@@ -1,3 +1,6 @@
+#openssl pkcs12 -engine gost -export -inkey prk.pem -in crt.pem -out pfx.pfx -password pass:123 -keypbe gost89 -certpbe gost89 -macalg md_gost12_256 Сохраню это тут
+#p12util.x86.exe -p12tocp -rdrfolder .\123 -contname mycont -ex -passp12 123 -infile .\pfx.pfx -noMACVerify -noCPKM
+
 function Sample_1_Generate_Gost3410_2012_KeyPair {
     param (
         [parameter(Mandatory=$false)] [System.String] $PrKFilePath = "prk.pem",
