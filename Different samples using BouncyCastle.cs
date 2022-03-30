@@ -92,24 +92,23 @@ var PAdES_SigFileName = "PDFtoBeSigned_PAdES.signed.pdf";
 var Header_Key_FileName = "header.key";
 
 Sample_1_Generate_Gost3410_2012_KeyPair(PrKeyFileName, PbKeyFileName, ToBeSigned);
-Sample_2_Read_Gost3410_2012_KeyPair_FromFile(PrKeyFileName, PbKeyFileName, ToBeSigned);
+//Sample_2_Read_Gost3410_2012_KeyPair_FromFile(PrKeyFileName, PbKeyFileName, ToBeSigned);
 Sample_3_Sign_And_Export_RawSignature_ToFile(PrKeyFileName, PbKeyFileName, RawSigFileName, ToBeSignedFileName);
 Sample_4_ImportandVerify_RawSignature(PbKeyFileName, RawSigFileName, ToBeSignedFileName);
 Sample_5_GenerateCertRequest(PrKeyFileName, PbKeyFileName, CertRequestFileName);
 Sample_6_GenerateSelfSignedCertificate(PrKeyFileName, PbKeyFileName, SelfSignedCertFileName);
 Sample_7_ExportPfx(PrKeyFileName, PFXFileName, SelfSignedCertFileName, PFXPass);
-Sample_8_ImportPfx(PFXFileName, PFXPass);
-Sample_9_SignCertRequest(PFXFileName, PFXPass, CertRequestFileName, IssuedCertFileName);
+//Sample_8_ImportPfx(PFXFileName, PFXPass);
+//Sample_9_SignCertRequest(PFXFileName, PFXPass, CertRequestFileName, IssuedCertFileName);
 Sample_10_Create_Attached_CAdES_BES(PFXFileName, PFXPass, CAdESBES_SigFileName, ToBeSignedFileName);
-Sample_11_Verify_Attached_CAdES_BES(CAdESBES_SigFileName);
-Sample_12_SignCRL(CrlFileName, PFXFileName, PFXPass);
-Sample_13_CreateXMLDSig(PFXFileName, PFXPass, XMLDSIG_SigFileName, XMLToBeSignedFileName);
-Sample_14_VerifyXMLDSig(XMLDSIG_SigFileName);
-Sample_15_CreatePAdES_usingTables(PFXFileName, PFXPass, "Tables.pdf", PDFToBeSignedFileName);
-System.Threading.Thread.Sleep(1000);
-Sample_15_CreatePAdES(PFXFileName, PFXPass, PAdES_SigFileName, PDFToBeSignedFileName);
-Sample_16_VerifyPAdES(PAdES_SigFileName);
-Sample_16_VerifyPAdES("Tables.pdf");
+//Sample_11_Verify_Attached_CAdES_BES(CAdESBES_SigFileName);
+//Sample_12_SignCRL(CrlFileName, PFXFileName, PFXPass);
+//Sample_13_CreateXMLDSig(PFXFileName, PFXPass, XMLDSIG_SigFileName, XMLToBeSignedFileName);
+//Sample_14_VerifyXMLDSig(XMLDSIG_SigFileName);
+//Sample_15_CreatePAdES_usingTables(PFXFileName, PFXPass, "Tables.pdf", PDFToBeSignedFileName);
+//Sample_15_CreatePAdES(PFXFileName, PFXPass, PAdES_SigFileName, PDFToBeSignedFileName);
+//Sample_16_VerifyPAdES(PAdES_SigFileName);
+//Sample_16_VerifyPAdES("Tables.pdf");
 
 static void Sample_1_Generate_Gost3410_2012_KeyPair(string _PrKeyFileName, string _PbKeyFileName, string _ToBeSigned)
 {
@@ -260,7 +259,7 @@ static void Sample_5_GenerateCertRequest(string _PrKeyFileName, string _PbKeyFil
 	AttributePkcs attributePkcs = new AttributePkcs(PkcsObjectIdentifiers.Pkcs9AtExtensionRequest, new DerSet(extGen.Generate()));
 	var request = new Pkcs10CertificationRequest(
 		"1.2.643.7.1.1.3.2",
-		new X509Name("CN=Месенгисер Якоб, L=Москва"),
+		new X509Name("CN=, L=Москва"),
 		(ECPublicKeyParameters)pbk,
 		new DerSet(attributePkcs),
 		(ECPrivateKeyParameters)prk);
@@ -292,11 +291,11 @@ static void Sample_6_GenerateSelfSignedCertificate(string _PrKeyFileName, string
 	Org.BouncyCastle.Math.BigInteger serial = new Org.BouncyCastle.Math.BigInteger(160, secureRandom);
 	var certGen = new X509V3CertificateGenerator();
 	certGen.SetSerialNumber(serial);
-	certGen.SetIssuerDN(new X509Name("CN=Месенгисер Якоб"));
+	certGen.SetIssuerDN(new X509Name("CN="));
 	certGen.SetNotBefore(DateTime.UtcNow);
 	certGen.SetNotAfter(DateTime.UtcNow.AddYears(1));
 	certGen.SetPublicKey(pbk);
-	certGen.SetSubjectDN(new X509Name("CN=Месенгисер Якоб"));
+	certGen.SetSubjectDN(new X509Name("CN="));
 
 	var subjectPbkInfo = new SubjectPublicKeyInfo(new AlgorithmIdentifier("1.2.643.7.1.2.1.1.1"), pbk.Q.GetEncoded());
 	var subjectKeyID = new SubjectKeyIdentifier(subjectPbkInfo);
@@ -533,6 +532,11 @@ static void Sample_10_Create_Attached_CAdES_BES(string _PFXFileName, string _PFX
 	var message = new CmsProcessableByteArray(fileBytes);
 
 	var attachedCAdESBES = gen.Generate(message, true);
+	var e = attachedCAdESBES.GetSignerInfos().GetSigners().GetEnumerator();
+	while (e.MoveNext())
+    {
+		SignerInformation s = (SignerInformation)e.Current;
+    }
 	var encodedSignedData = attachedCAdESBES.GetEncoded("DER");
 	var convertedSignedData = Convert.ToBase64String(encodedSignedData);
 	File.WriteAllBytes(_CAdES_BES_SigFileName, Encoding.ASCII.GetBytes(convertedSignedData));
@@ -705,7 +709,7 @@ static void Sample_15_CreatePAdES(string _PFXFileName, string _PFXPass, string _
 		reader.Close();
 		reader = new PdfReader($"{_PDFToBeSignedFileName}.temp");
 		PdfDocument p = new PdfDocument(reader);
-		p.GetDocumentInfo().SetAuthor("Месенгисер Якоб");
+		p.GetDocumentInfo().SetAuthor("");
 		reader = new PdfReader($"{_PDFToBeSignedFileName}.temp");
 		PdfDocumentContentParser pcp = new iText.Kernel.Pdf.Canvas.Parser.PdfDocumentContentParser(p);
 		TextMarginFinder finder = pcp.ProcessContent(p.GetNumberOfPages(), new iText.Kernel.Pdf.Canvas.Parser.Listener.TextMarginFinder());
@@ -816,7 +820,7 @@ static void Sample_15_CreatePAdES_usingTables(string _PFXFileName, string _PFXPa
 		reader.Close();
 		reader = new PdfReader($"{_PDFToBeSignedFileName}.temp");
 		PdfSigner signer = new PdfSigner(reader, new FileStream($"{_PAdES_SigFileName}", FileMode.Create, FileAccess.ReadWrite), new StampingProperties().UseAppendMode());
-		signer.GetDocument().GetDocumentInfo().SetAuthor("Месенгисер Якоб");
+		signer.GetDocument().GetDocumentInfo().SetAuthor("");
 		PdfDocumentContentParser pcp = new iText.Kernel.Pdf.Canvas.Parser.PdfDocumentContentParser(signer.GetDocument());
 		TextMarginFinder finder = pcp.ProcessContent(signer.GetDocument().GetNumberOfPages(), new iText.Kernel.Pdf.Canvas.Parser.Listener.TextMarginFinder());
 		Rectangle datarec = finder.GetTextRectangle();
@@ -859,7 +863,7 @@ static void Sample_15_CreatePAdES_usingTables(string _PFXFileName, string _PFXPa
 			).SetPadding(0);
 
 		Cell IsSigned = new Cell().SetBorder(Border.NO_BORDER);
-		IsSigned.SetWidth(width-50f).SetHeight(40f).SetVerticalAlignment(iText.Layout.Properties.VerticalAlignment.MIDDLE);
+		IsSigned.SetWidth(width - 50f).SetHeight(40f).SetVerticalAlignment(iText.Layout.Properties.VerticalAlignment.MIDDLE);
 		IsSigned.Add(
 			new Paragraph("документ подписан\nэлектронной подписью".ToUpper())
 				.SetFontColor(ColorConstants.BLUE)
