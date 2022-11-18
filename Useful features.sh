@@ -27,11 +27,11 @@ BEGIN {
 #extract signed content from base64 encoded sig
 cat sig.sig | base64 --decode --ignore-garbage | openssl cms -cmsout -inform DER -print -nameopt utf8 -print | awk '
 BEGIN {
-flag_start=0; flag_proceed=0;
+    flag_start=0; flag_proceed=0;
 }
 {
-if (match($0, "eContent:")!=0) {flag_start=1}
-if ((flag_start==1) && (match($0, "        ")!=0)) {flag_proceed=1}
-if ((flag_proceed==1) && (match($0, "        ")==0)) {flag_start=0; flag_proceed=0}
-if (flag_proceed) {for (i=3; i<=16; i++) {printf ($i)}; print ""}
+    if (match($0, "eContent:")!=0) {flag_start=1}
+    if ((flag_start==1) && (match($0, "        ")!=0)) {flag_proceed=1}
+    if ((flag_proceed==1) && (match($0, "        ")==0)) {flag_start=0; flag_proceed=0}
+    if (flag_proceed) {for (i=3; i<=16; i++) {printf ($i)}; print ""}
 }' | sed "s|[.]||g" | xxd -r -p
