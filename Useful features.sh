@@ -33,5 +33,5 @@ BEGIN {
     if (match($0, "eContent:")!=0) {flag_start=1}
     if ((flag_start==1) && (match($0, "        ")!=0)) {flag_proceed=1}
     if ((flag_proceed==1) && (match($0, "        ")==0)) {flag_start=0; flag_proceed=0}
-    if (flag_proceed) {for (i=3; i<=16; i++) {printf ($i)}; print ""}
-}' | sed "s|[.]||g" | xxd -r -p
+    if (flag_proceed) {for (i=3; i<=16; i++) {printf ($i)};}
+}' | sed "s|[-.]||g" | xxd -r -p | sed 's/$/ \n/' > test.txt
