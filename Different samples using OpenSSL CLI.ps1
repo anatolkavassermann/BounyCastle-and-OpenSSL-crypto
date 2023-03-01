@@ -49,6 +49,7 @@ function Sample_5_GenerateCertRequest {
     )
     
     openssl req -new -key $PrKFilePath -subj "/CN=Anatolka/L=Moscow" -outform PEM -out $CertReqFilePath
+    openssl req -key prk.pem -outform PEM -subj "/CN=Anatolka/L=Moscow" -addext extendedKeyUsage=1.3.6.1.5.5.7.3.2,1.3.6.1.5.5.7.3.4 -addext keyUsage=critical,nonRepudiation,digitalSignature,keyEncipherment,keyAgreement -new -outform PEM -out req.req
 }
 
 function Sample_6_GenerateSelfSignedCertificate {
