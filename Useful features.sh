@@ -36,9 +36,8 @@ BEGIN {
     if (flag_proceed) {for (i=3; i<=16; i++) {printf ($i)};}
 }' | sed "s|[-.]||g" | xxd -r -p | sed 's/$/ \n/' > test.txt
 
-#convert cryptopro container to vipnet container
+#Сконвертировать контейнер КриптоПро в pfx, который съест Vipnet csp
 #важно. тестировалось на wsl 2.0, ubuntu 20.04.06, openssl 1.1.1f
-#работает без лисси софт и всего остального. Только упенсурс, только хардкор
 sudo apt update;
 sudo apt install git perl cmake make gcc libssl-dev python3-pip zstd;
 cd ~/;
