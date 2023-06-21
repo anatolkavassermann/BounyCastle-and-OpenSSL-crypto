@@ -72,5 +72,5 @@ cd ~/cpfx;
 python3 cpfx.py <путь до pfx> #там будет предложено ввести пароль от pfx, лучше скопировать pfx в cpfx
 openssl pkcs12 -in <путь до pfx> -password pass:<парль от pfx> -nokeys | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | openssl x509 -outform PEM -out cert.pem
 openssl pkcs12 -engine gost -export -inkey <путь до файла, который создал cpfx> -in cert.pem -out pfx.pfx -password pass:1 -keypbe gost89 -certpbe gost89 -macalg md_gost12_256
-#файл pfx.pfx нужно скорпить vipnet
+#файл pfx.pfx нужно скормить vipnet
 #----------------------------------------------------------------------------------------------------------------------------------
