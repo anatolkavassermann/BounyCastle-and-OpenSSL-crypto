@@ -23,6 +23,8 @@ BEGIN {
     if (flag_end==1) {flag_proceed=0;};
     if ((flag_proceed==1) || (flag_end==1)) {print ($0)> "cert_" n "_CN_" filename ".pem";};
 }'
+#----------------------------------------------------------------------------------------------------------------------------------
+
 
 #extract signed content from base64 encoded sig
 cat sig.sig | base64 --decode --ignore-garbage | openssl cms -cmsout -inform DER -print -nameopt utf8 -print | awk '
@@ -35,6 +37,8 @@ BEGIN {
     if ((flag_proceed==1) && (match($0, "        ")==0)) {flag_start=0; flag_proceed=0}
     if (flag_proceed) {for (i=3; i<=16; i++) {printf ($i)};}
 }' | sed "s|[-.]||g" | xxd -r -p | sed 's/$/ \n/' > test.txt
+#----------------------------------------------------------------------------------------------------------------------------------
+
 
 #Сконвертировать контейнер КриптоПро в pfx, который съест Vipnet csp
 #важно. тестировалось на wsl 2.0, ubuntu 20.04.06, openssl 1.1.1f
@@ -68,3 +72,5 @@ cd ~/cpfx;
 python3 cpfx.py <путь до pfx> #там будет предложено ввести пароль от pfx, лучше скопировать pfx в cpfx
 openssl pkcs12 -in <путь до pfx> -password pass:<парль от pfx> -nokeys | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | openssl x509 -outform PEM -out cert.pem
 openssl pkcs12 -engine gost -export -inkey <путь до файла, который создал cpfx> -in cert.pem -out pfx.pfx -password pass:1 -keypbe gost89 -certpbe gost89 -macalg md_gost12_256
+#файл pfx.pfx нужно скорпить vipnet
+#----------------------------------------------------------------------------------------------------------------------------------
