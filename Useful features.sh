@@ -36,7 +36,7 @@ BEGIN {
     if (flag_proceed) {for (i=3; i<=16; i++) {printf ($i)};}
 }' | sed "s|[-.]||g" | xxd -r -p | sed 's/$/ \n/' > test.txt
 
-#convert cpro container to vipnet container
+#convert cryptopro container to vipnet container
 #важно. тестировалось на wsl 2.0, ubuntu 20.04.06, openssl 1.1.1f
 
 sudo apt update;
