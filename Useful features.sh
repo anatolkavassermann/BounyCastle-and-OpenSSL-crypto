@@ -38,7 +38,7 @@ BEGIN {
 
 #convert cryptopro container to vipnet container
 #важно. тестировалось на wsl 2.0, ubuntu 20.04.06, openssl 1.1.1f
-#работает без лисси софт и всякого прочего. Только упенсурс, только хардкор
+#работает без лисси софт и всего остального. Только упенсурс, только хардкор
 sudo apt update;
 sudo apt install git perl cmake make gcc libssl-dev python3-pip zstd;
 cd ~/;
