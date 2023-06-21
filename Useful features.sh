@@ -54,6 +54,7 @@ cd ~/;
 git clone https://github.com/li0ard/cpfx.git ./cpfx;
 cd ./cpfx;
 pip3 install asn1==2.6.0;
+#возникла какая-то фигня с установкой через pip pyderasn-9.3 и pygost-5.11. Ставим это все вручную
 wget http://www.pyderasn.cypherpunks.ru/download/pyderasn-9.3.tar.zst;
 zstd -d < pyderasn-9.3.tar.zst | tar xf -;
 cd pyderasn-9.3/;
