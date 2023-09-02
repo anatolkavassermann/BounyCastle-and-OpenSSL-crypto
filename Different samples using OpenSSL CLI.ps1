@@ -8,9 +8,8 @@ function Sample_1_Generate_Gost3410_2012_KeyPair {
     )
 
     openssl genpkey -outform PEM -algorithm gost2012_256 -pkeyopt paramset:TCA -out $PrKFilePath
-    #не знаю, как иначе получить открытый ключ. Используя команду "openssl genpkey" можно получить открытый ключ, но он будет представлен в виде координат
-    #I don't know how else to get the private key. you can get the public key using the command "openssl genpkey" , but it will be represented as a coordinates
-    openssl req -new -key $PrKFilePath -subj "/" -noout -pubkey -outform PEM -out $PbKFilePath 
+    openssl pkey -pubout -engine gost -in $PrKFilePath -out $PbKFilePath
+    #openssl req -new -key $PrKFilePath -subj "/" -noout -pubkey -outform PEM -out $PbKFilePath 
 }
 
 function Sample_3_Sign_And_Export_RawSignature_ToFile {
