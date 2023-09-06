@@ -38,3 +38,10 @@ BEGIN {
     if (flag_proceed) {for (i=3; i<=16; i++) {printf ($i)};}
 }' | sed "s|[-.]||g" | xxd -r -p | sed 's/$/ \n/' > test.txt
 #----------------------------------------------------------------------------------------------------------------------------------
+
+
+#convert x509 serial to bigint using bash
+echo $(echo 'ibase=16;' $(openssl x509 -in user.crt -serial -noout | tr "=", "\n" | sed -n 'n;p')| bc)
+#it is useful when you need to create another x509 cert with the same serial (or add 1 or 2, idk)
+openssl x509 -engine gost -req -in req.req -days 365 -CA caCert.crt -CAkey caprk.pem -outform PEM -out eeCert.crt -set_serial $(echo 'ibase=16;' $(openssl x509 -in user.crt -serial -noout | tr '=', '\n' | sed -n 'n;p')| bc)
+#----------------------------------------------------------------------------------------------------------------------------------
