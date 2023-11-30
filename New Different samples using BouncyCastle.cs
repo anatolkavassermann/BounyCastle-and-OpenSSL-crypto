@@ -41,37 +41,37 @@ using Org.BouncyCastle.Asn1.X500;
 using Org.BouncyCastle.Ocsp;
 
 var ToBeSigned = "Hello, world!";
-var ToBeSignedFileName = "C:\\Users\\mesen\\Desktop\\MyPrograms\\Experiments\\hack_cont_new\\data\\toBeSigned.txt";
+var ToBeSignedFileName = "C:\\Users\\user\\Desktop\\MyPrograms\\Experiments\\hack_cont_new\\data\\toBeSigned.txt";
 File.WriteAllBytes(ToBeSignedFileName, Encoding.ASCII.GetBytes(ToBeSigned));
 
-var PDFToBeSignedFileName = "C:\\Users\\mesen\\Desktop\\MyPrograms\\Experiments\\hack_cont_new\\data\\tbs.pdf";
+var PDFToBeSignedFileName = "C:\\Users\\user\\Desktop\\MyPrograms\\Experiments\\hack_cont_new\\data\\tbs.pdf";
 
 //keydata
-var PrKeyFileName = "C:\\Users\\mesen\\Desktop\\MyPrograms\\Experiments\\hack_cont_new\\data\\prk.pem";
-var PbKeyFileName = "C:\\Users\\mesen\\Desktop\\MyPrograms\\Experiments\\hack_cont_new\\data\\pbk.pem";
+var PrKeyFileName = "C:\\Users\\user\\Desktop\\MyPrograms\\Experiments\\hack_cont_new\\data\\prk.pem";
+var PbKeyFileName = "C:\\Users\\user\\Desktop\\MyPrograms\\Experiments\\hack_cont_new\\data\\pbk.pem";
 
 //Rawsig FileName
-var RawSigFileName = "C:\\Users\\mesen\\Desktop\\MyPrograms\\Experiments\\hack_cont_new\\data\\toBeSignedRaw.sig";
+var RawSigFileName = "C:\\Users\\user\\Desktop\\MyPrograms\\Experiments\\hack_cont_new\\data\\toBeSignedRaw.sig";
 
 //For CA
-var CertRequestFileName = "C:\\Users\\mesen\\Desktop\\MyPrograms\\Experiments\\hack_cont_new\\data\\req.req";
-var CertRequestWithCustomDirectoryStringAttributesFileName = "C:\\Users\\mesen\\Desktop\\MyPrograms\\Experiments\\hack_cont_new\\data\\req_custom.req";
-var SelfSignedCertFileName = "C:\\Users\\mesen\\Desktop\\MyPrograms\\Experiments\\hack_cont_new\\data\\cert.crt";
-var IssuedCertFileName = "C:\\Users\\mesen\\Desktop\\MyPrograms\\Experiments\\hack_cont_new\\data\\issued_cert.crt";
-var CRLFileName = "C:\\Users\\mesen\\Desktop\\MyPrograms\\Experiments\\hack_cont_new\\data\\crl.crl";
-var OCSPResponseFileName = "C:\\Users\\mesen\\Desktop\\MyPrograms\\Experiments\\hack_cont_new\\data\\ocsp.resp";
-var OCSPRequestFileName = "C:\\Users\\mesen\\Desktop\\MyPrograms\\Experiments\\hack_cont_new\\data\\ocsp.req";
-var OCSPCertToBeVerified = "C:\\Users\\mesen\\Desktop\\MyPrograms\\Experiments\\hack_cont_new\\data\\userOCSP.cer";
-var RootCertFileName = "C:\\Users\\mesen\\Desktop\\MyPrograms\\Experiments\\hack_cont_new\\data\\root.cer";
+var CertRequestFileName = "C:\\Users\\user\\Desktop\\MyPrograms\\Experiments\\hack_cont_new\\data\\req.req";
+var CertRequestWithCustomDirectoryStringAttributesFileName = "C:\\Users\\user\\Desktop\\MyPrograms\\Experiments\\hack_cont_new\\data\\req_custom.req";
+var SelfSignedCertFileName = "C:\\Users\\user\\Desktop\\MyPrograms\\Experiments\\hack_cont_new\\data\\cert.crt";
+var IssuedCertFileName = "C:\\Users\\user\\Desktop\\MyPrograms\\Experiments\\hack_cont_new\\data\\issued_cert.crt";
+var CRLFileName = "C:\\Users\\user\\Desktop\\MyPrograms\\Experiments\\hack_cont_new\\data\\crl.crl";
+var OCSPResponseFileName = "C:\\Users\\user\\Desktop\\MyPrograms\\Experiments\\hack_cont_new\\data\\ocsp.resp";
+var OCSPRequestFileName = "C:\\Users\\user\\Desktop\\MyPrograms\\Experiments\\hack_cont_new\\data\\ocsp.req";
+var OCSPCertToBeVerified = "C:\\Users\\user\\Desktop\\MyPrograms\\Experiments\\hack_cont_new\\data\\userOCSP.cer";
+var RootCertFileName = "C:\\Users\\user\\Desktop\\MyPrograms\\Experiments\\hack_cont_new\\data\\root.cer";
 
 //For PFX
-var PFXFileName = "C:\\Users\\mesen\\Desktop\\MyPrograms\\Experiments\\hack_cont_new\\data\\pfx.pfx";
+var PFXFileName = "C:\\Users\\user\\Desktop\\MyPrograms\\Experiments\\hack_cont_new\\data\\pfx.pfx";
 var PFXPass = "12345qwerty";
 
 //For CAdES, XMLDSIG and PAdES
-var CAdESBES_SigFileName = "C:\\Users\\mesen\\Desktop\\MyPrograms\\Experiments\\hack_cont_new\\data\\toBeSigned_CAdESBES.sig";
-var XMLDSIG_SigFileName = "C:\\Users\\mesen\\Desktop\\MyPrograms\\Experiments\\hack_cont_new\\data\\XMLtoBeSigned_XMLDSIG.signed.xml";
-var PAdES_SigFileName = "C:\\Users\\mesen\\Desktop\\MyPrograms\\Experiments\\hack_cont_new\\data\\PDFtoBeSigned_PAdES.signed.pdf";
+var CAdESBES_SigFileName = "C:\\Users\\user\\Desktop\\MyPrograms\\Experiments\\hack_cont_new\\data\\toBeSigned_CAdESBES.sig";
+var XMLDSIG_SigFileName = "C:\\Users\\user\\Desktop\\MyPrograms\\Experiments\\hack_cont_new\\data\\XMLtoBeSigned_XMLDSIG.signed.xml";
+var PAdES_SigFileName = "C:\\Users\\user\\Desktop\\MyPrograms\\Experiments\\hack_cont_new\\data\\PDFtoBeSigned_PAdES.signed.pdf";
 
 
 Console.WriteLine("Begin tests (v. 1.2)\nAuthor: TolikTipaTut1\n-------------------------------------------");
