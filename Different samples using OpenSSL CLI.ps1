@@ -7,7 +7,7 @@ function Sample_1_Generate_Gost3410_2012_KeyPair {
         [parameter(Mandatory=$false)] [System.String] $PbKFilePath = "pbk.pem"
     )
 
-    openssl genpkey -outform PEM -algorithm gost2012_256 -pkeyopt paramset:TCA -out $PrKFilePath
+    openssl genpkey -outform PEM -algorithm gost2012_256 -pkeyopt paramset:XA -out $PrKFilePath
     openssl pkey -pubout -engine gost -in $PrKFilePath -out $PbKFilePath
     #openssl req -new -key $PrKFilePath -subj "/" -noout -pubkey -outform PEM -out $PbKFilePath 
 }
